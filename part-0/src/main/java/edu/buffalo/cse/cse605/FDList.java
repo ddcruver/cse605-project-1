@@ -23,23 +23,29 @@ public class FDList<T> {
 	}
 
 	public class Writer {
+		private final Element currentElement;
 
-		Element currentElement;
+		public Writer(Element currentElement) {
+			this.currentElement = currentElement;
+		}
 
 
 		public void delete() {
-
+			currentElement.delete();
 		}
 
 		public boolean insertBefore(T val) {
-			Element newElement = new Element(val, currentElement.prev, currentElement);
+			Element newElement = new Element(val, currentElement.getPrev(), currentElement);
 			newElement.adjustNeighbors();
 
 			return true;
 		}
 
 		public boolean insertAfter(T val) {
-			return false;
+			Element newElement = new Element(val, currentElement, currentElement.getNext());
+			newElement.adjustNeighbors();
+
+			return true;
 		}
 	}
 
@@ -51,19 +57,19 @@ public class FDList<T> {
 		}
 
 		public Element curr() {
-			return null;
+			return currentElement;
 		}
 
 		public void next() {
-			currentElement = curr().next;
+			currentElement = curr().getNext();
 		}
 
 		public void prev() {
-			currentElement = curr().prev;
+			currentElement = curr().getPrev();
 		}
 
 		public Writer writer() {
-			return null;
+			return new Writer(currentElement);
 		}
 	}
 
@@ -73,11 +79,10 @@ public class FDList<T> {
 
 		private T value;
 
-//		public static Element insertElement(T value, Element prev, Element next) {}
-
 		public Element(T value) {
 			this.value = value;
-			prev = next = this;
+			prev = this;
+			next = this;
 		}
 
 		public Element(T value, Element prev, Element next) {
@@ -110,6 +115,11 @@ public class FDList<T> {
 		public T value() {
 			return value;
 		}
-	}
 
+		private void delete() {
+			prev.setNext(next);
+			next.setPrev(prev);
+		}
+	}
 }
+
