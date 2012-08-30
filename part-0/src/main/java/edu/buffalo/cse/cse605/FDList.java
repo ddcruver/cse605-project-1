@@ -24,13 +24,18 @@ public class FDList<T> {
 
 	public class Writer {
 
+		Element currentElement;
+
 
 		public void delete() {
 
 		}
 
 		public boolean insertBefore(T val) {
-			return false;
+			Element newElement = new Element(val, currentElement.prev, currentElement);
+			newElement.adjustNeighbors();
+
+			return true;
 		}
 
 		public boolean insertAfter(T val) {
@@ -67,6 +72,8 @@ public class FDList<T> {
 		private Element next;
 
 		private T value;
+
+//		public static Element insertElement(T value, Element prev, Element next) {}
 
 		public Element(T value) {
 			this.value = value;
