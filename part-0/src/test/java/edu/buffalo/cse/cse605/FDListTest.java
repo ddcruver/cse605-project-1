@@ -8,7 +8,6 @@ import org.junit.Test;
  * User: jmlogan
  * Date: 8/29/12
  * Time: 10:44 PM
- * To change this template use File | Settings | File Templates.
  */
 public class FDListTest {
 
@@ -25,7 +24,8 @@ public class FDListTest {
 	}
 
 	@Test
-	public void testFirstInsertion() throws Exception {
+	public void testInsertionAfter() throws Exception {
+
 		String first = "first";
 		String second = "second";
 		String[] elements = {first, second};
@@ -41,6 +41,63 @@ public class FDListTest {
 		assertListSame(reader, elements);
 	}
 
+	@Test
+	public void testInsertionBefore() throws Exception {
+
+		String first = "first";
+		String second = "second";
+		String third = "third";
+		String[] elements = {first, third, second};
+
+		FDList<String> list = new FDList<String>(first);
+
+		FDList<String>.Cursor reader = list.reader(list.head());
+
+		reader.writer().insertAfter(second);
+		reader.next();
+		reader.writer().insertBefore(third);
+
+		reader = list.reader(list.head());
+
+		assertListSame(reader, elements);
+	}
+
+	@Test
+	public void testDeletion() throws Exception {
+		String first = "first";
+		String second = "second";
+		String[] elements = {first};
+
+		FDList<String> list = new FDList<String>(first);
+
+		FDList<String>.Cursor reader = list.reader(list.head());
+		reader.writer().insertAfter(second);
+		reader.next();
+
+		reader.writer().delete();
+
+		assertListSame(reader, elements);
+	}
+
+	@Test
+	public void testCursorPrevious() throws Exception {
+		String first = "first";
+		String second = "second";
+		String third = "third";
+
+		FDList<String> list = new FDList<String>(first);
+
+		FDList<String>.Cursor reader = list.reader(list.head());
+		reader.writer().insertAfter(second);
+		reader.writer().insertBefore(third);
+
+		Assert.assertEquals(first, reader.curr().value());
+		reader.next();
+		Assert.assertEquals(second, reader.curr().value());
+		reader.prev();
+		Assert.assertEquals(first, reader.curr().value());
+	}
+
 	private void assertListSame(FDList<String>.Cursor reader, String[] expected) {
 		for (String element : expected) {
 			Assert.assertEquals(reader.curr().value(), element);
@@ -51,4 +108,6 @@ public class FDListTest {
 		// assert the circularity
 		Assert.assertEquals(reader.curr().value(), expected[0]);
 	}
+
+
 }

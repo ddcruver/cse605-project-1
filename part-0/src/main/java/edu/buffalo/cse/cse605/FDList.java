@@ -5,7 +5,6 @@ package edu.buffalo.cse.cse605;
  * User: jmlogan
  * Date: 8/29/12
  * Time: 6:26 PM
- * To change this template use File | Settings | File Templates.
  */
 public class FDList<T> {
 	private Element head;
@@ -24,14 +23,17 @@ public class FDList<T> {
 
 	public class Writer {
 		private final Element currentElement;
+		private final Cursor cursor;
 
-		public Writer(Element currentElement) {
-			this.currentElement = currentElement;
+		public Writer(Cursor cursor) {
+			this.cursor = cursor;
+			this.currentElement = cursor.curr();
 		}
 
 
 		public void delete() {
 			currentElement.delete();
+			cursor.next();
 		}
 
 		public boolean insertBefore(T val) {
@@ -69,7 +71,7 @@ public class FDList<T> {
 		}
 
 		public Writer writer() {
-			return new Writer(currentElement);
+			return new Writer(this);
 		}
 	}
 
