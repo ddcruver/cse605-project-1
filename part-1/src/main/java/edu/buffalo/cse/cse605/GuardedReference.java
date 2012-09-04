@@ -1,10 +1,17 @@
 package edu.buffalo.cse.cse605;
 
-/**
- * Created with IntelliJ IDEA.
- * User: jmlogan
- * Date: 9/1/12
- * Time: 11:23 PM
- */
-public class GuardedReference {
+public class GuardedReference<T> {
+	private T value;
+
+	public GuardedReference(T value) {
+		this.value = value;
+	}
+
+	public synchronized T get() {
+		return value;
+	}
+
+	public synchronized void set(T value) {
+		this.value = value;
+	}
 }
