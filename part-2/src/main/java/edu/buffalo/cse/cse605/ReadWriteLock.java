@@ -130,7 +130,7 @@ public class ReadWriteLock {
 			awake();
 		}
 
-		protected abstract void acquireResource s();
+		protected abstract void acquireResources();
 
 		private void awake() {
 			thread.notify();
