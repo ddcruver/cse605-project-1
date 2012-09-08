@@ -1,0 +1,19 @@
+import edu.buffalo.cse.cse605.DList;
+import edu.buffalo.cse.cse605.FDCoarse;
+import org.slf4j.LoggerFactory;
+
+import java.lang.Integer;
+
+public class TestFDCoarse
+{
+	private static final Logger LOG = LoggerFactory.getLogger(TestFDCoarse.class);
+
+	@Test
+	public void testListCreation()
+	{
+		DList<Integer> dl = new FDCoarse<Integer>();
+
+		LOG.debug("The head: {}", dl.head());
+	}
+
+}
