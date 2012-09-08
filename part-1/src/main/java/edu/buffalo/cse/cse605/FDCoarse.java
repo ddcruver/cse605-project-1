@@ -7,7 +7,7 @@ package edu.buffalo.cse.cse605;
  * Time: 11:18 AM
  * To change this template use File | Settings | File Templates.
  */
-public class FDCoarse<T> //implements DList<T>
+public class FDCoarse<T> implements DList<T>
 {
 	static class Element<T> implements DList.Element {
 		T value;
@@ -16,7 +16,6 @@ public class FDCoarse<T> //implements DList<T>
 			return value;
 		}
 	}
-
 
 	private Element head;
 
@@ -32,9 +31,9 @@ public class FDCoarse<T> //implements DList<T>
 		return head;
 	}
 
-	//@Override
-	//public Cursor reader(Element from)
-	//{
-	//	return null;  //To change body of implemented methods use File | Settings | File Templates.
-	//}
+	@Override
+	public Cursor reader(DList.Element from)
+	{
+		return null;  //To change body of implemented methods use File | Settings | File Templates.
+	}
 }
