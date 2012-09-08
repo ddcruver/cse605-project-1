@@ -31,22 +31,21 @@ public class FDList<T> {
 		}
 
 
-		public void delete() {
+		public boolean delete() {
 			currentElement.delete();
 			cursor.next();
+			return true;
 		}
 
 		public boolean insertBefore(T val) {
 			Element newElement = new Element(val, currentElement.getPrev(), currentElement);
 			newElement.adjustNeighbors();
-
 			return true;
 		}
 
 		public boolean insertAfter(T val) {
 			Element newElement = new Element(val, currentElement, currentElement.getNext());
 			newElement.adjustNeighbors();
-
 			return true;
 		}
 	}

@@ -11,5 +11,17 @@
 
     <artifactId>part-2</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>cse605-project-1</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+                           <version>4.10</version>
+        </dependency>
+    </dependencies>
 </project>
