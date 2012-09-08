@@ -17,11 +17,11 @@ public class FDList<T> {
 		return head;
 	}
 
-	public Cursor reader(Element from) {
+	public Cursor<T> reader(Element from) {
 		return new Cursor(from);
 	}
 
-	public class Writer {
+	public class Writer<T> {
 		private final Element currentElement;
 		private final Cursor cursor;
 
@@ -31,27 +31,26 @@ public class FDList<T> {
 		}
 
 
-		public void delete() {
+		public boolean delete() {
 			currentElement.delete();
 			cursor.next();
+			return true;
 		}
 
 		public boolean insertBefore(T val) {
 			Element newElement = new Element(val, currentElement.getPrev(), currentElement);
 			newElement.adjustNeighbors();
-
 			return true;
 		}
 
 		public boolean insertAfter(T val) {
 			Element newElement = new Element(val, currentElement, currentElement.getNext());
 			newElement.adjustNeighbors();
-
 			return true;
 		}
 	}
 
-	public class Cursor {
+	public class Cursor<T> {
 		private Element currentElement;
 
 		private Cursor(Element currentElement) {
@@ -75,7 +74,7 @@ public class FDList<T> {
 		}
 	}
 
-	public class Element {
+	public class Element<T> implements DList.Element {
 		private Element prev;
 		private Element next;
 

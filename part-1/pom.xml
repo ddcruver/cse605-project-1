@@ -13,7 +13,7 @@
 
     <dependencies>
         <dependency>
-            <artifactId>part-0</artifactId>
+            <artifactId>common</artifactId>
             <groupId>cse605-project-1</groupId>
             <version>${project.version}</version>
         </dependency>
