@@ -19,13 +19,12 @@ public class FDCoarse<T> implements DList<T>
 
 	private Element head;
 
-
 	public FDCoarse()
 	{
 		head = new Element();
 	}
 
-	//@Override
+	@Override
 	public Element head()
 	{
 		return head;
