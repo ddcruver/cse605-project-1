@@ -17,11 +17,11 @@ public class FDList<T> {
 		return head;
 	}
 
-	public Cursor<T> reader(Element from) {
+	public Cursor reader(Element from) {
 		return new Cursor(from);
 	}
 
-	public class Writer<T> {
+	public class Writer {
 		private final Element currentElement;
 		private final Cursor cursor;
 
@@ -50,7 +50,7 @@ public class FDList<T> {
 		}
 	}
 
-	public class Cursor<T> {
+	public class Cursor {
 		private Element currentElement;
 
 		private Cursor(Element currentElement) {
@@ -74,7 +74,7 @@ public class FDList<T> {
 		}
 	}
 
-	public class Element<T> implements DList.Element {
+	public class Element {
 		private Element prev;
 		private Element next;
 
