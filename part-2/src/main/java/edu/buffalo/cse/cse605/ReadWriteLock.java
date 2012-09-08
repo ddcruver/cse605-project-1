@@ -1,5 +1,9 @@
 package edu.buffalo.cse.cse605;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sun.rmi.runtime.Log;
+
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -15,6 +19,7 @@ import org.slf4j.LoggerFactory;
  * Time: 5:58 PM
  */
 public class ReadWriteLock {
+	private transient final Logger Log = LoggerFactory.getLogger(ReadWriteLock.class);
 
 	private AtomicInteger outstandingReadLocks = new AtomicInteger(0);
 	private AtomicBoolean currentlyWriting = new AtomicBoolean(false);
@@ -46,6 +51,7 @@ public class ReadWriteLock {
 
 		@Override
 		protected void acquireResources() {
+			Log.debug("Allocated resources for reading for thread {}", Thread.currentThread().getName());
 			outstandingReadLocks.incrementAndGet();
 		}
 
@@ -69,6 +75,7 @@ public class ReadWriteLock {
 
 		@Override
 		protected void acquireResources() {
+<<<<<<< HEAD
 			boolean updateWriteStatus = currentlyWriting.compareAndSet(false, true);
 
 			if (updateWriteStatus) {
@@ -83,6 +90,16 @@ public class ReadWriteLock {
 			numberOfWritersWaiting.incrementAndGet();
 
 			super.acquire();
+=======
+			boolean successAcquiringLock = currentlyWriting.compareAndSet(false, true);
+
+			if (successAcquiringLock) {
+				AtomicBoolean writerWaiting = new AtomicBoolean(false);
+				throw new IllegalStateException("Multiple concurrent writes!");
+			}
+
+			Log.debug("Allocated resources for writing for thread {}", Thread.currentThread().getName());
+>>>>>>> e8410ecc21bdf53353b4edd29832ab195b743856
 		}
 
 		@Override
@@ -93,7 +110,7 @@ public class ReadWriteLock {
 
 	public abstract class Lock {
 		private Thread thread;
-		private boolean allocatedResources = false;
+		private AtomicBoolean allocatedResources = new AtomicBoolean(false);
 
 		/**
 		 * Acquires the requested lock, blocking if necessary.
@@ -106,15 +123,30 @@ public class ReadWriteLock {
 					sleep();
 				}
 
+				Log.debug("Lock {} acquired by thread {}.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
+
 				assureResourcesAcquired();
 
 			}
 		}
 
-		private synchronized void assureResourcesAcquired() {
-			if (!allocatedResources) {
+		/**
+		 This is required because we need to allocate resources for a lock that has blocked BEFORE waking it, because you cannot guarantee that waking a thread, and it claiming its resources is atomic. Otherwise our notion of fairness could be violated by the following sequence: <br />
+		 <br />
+		 (1) Reader Lock A acquired<br />
+		 (2) Writer Lock B attempted -- is not available due to reader outstanding. blocks.<br />
+		 (3) Reader Lock A returned<br />
+		 (4) Writer Lock B is awoken<br />
+		 (5) Writer Lock C is acquired (Lock B did not claim it's resources yet)<br />
+		 (6) Writer Lock B is blocked -- our fairness is broken<br />
+		 <br />
+		 This is solved by allocating the lock's resources before waking it (within the critical section of code). Therefore, there are two paths to acquire the lock resources, and it should only be done once.
+		 */
+		private void assureResourcesAcquired() {
+			// if the resources are allocated already (ie. it didn't block), continue, else allocate first
+			if(allocatedResources.compareAndSet(false, true)) {
+
 				acquireResources();
-				allocatedResources = true;
 			}
 		}
 
@@ -123,6 +155,7 @@ public class ReadWriteLock {
 		 */
 		public void release() {
 			synchronized (ReadWriteLock.this) {
+				Log.debug("Releasing lock {} by thread {}.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
 				releaseResources();
 				flushQueue();
 			}
@@ -131,12 +164,15 @@ public class ReadWriteLock {
 		protected abstract void releaseResources();
 
 		protected void sleep() throws InterruptedException {
+			Log.debug("Lock {} not available for thread {}, sleeping.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
+
 			thread = Thread.currentThread();
 			pendingLocks.add(this);
 			wait();
 		}
 
 		private void resume() {
+			Log.debug("Acquiring resources & resuming thread {} -- ready for lock acquisition.", Thread.currentThread().getName());
 			acquireResources();
 			awake();
 		}

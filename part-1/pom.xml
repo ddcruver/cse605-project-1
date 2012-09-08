@@ -11,5 +11,11 @@
 
     <artifactId>part-1</artifactId>
 
-
+    <dependencies>
+        <dependency>
+            <artifactId>common</artifactId>
+            <groupId>cse605-project-1</groupId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>
