@@ -40,5 +40,7 @@ Thumbs.db
 
 # Specific Stuff #
 *.iml
+*/.idea/*
 .idea/*
 .idea
+*/.idea/**
