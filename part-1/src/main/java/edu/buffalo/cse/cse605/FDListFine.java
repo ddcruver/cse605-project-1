@@ -154,7 +154,7 @@ public class FDListFine<T> {
 			return value;
 		}
 
-		private void delete() throws IllegalStateException{
+		private boolean delete() throws IllegalStateException{
 			if(getNext().isTail() && getPrev().isTail()){
                 throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
             }
@@ -171,6 +171,7 @@ public class FDListFine<T> {
 					}
 				}
 			}
+			return deleted;
 		}
 
 		public boolean isDeleted() {
