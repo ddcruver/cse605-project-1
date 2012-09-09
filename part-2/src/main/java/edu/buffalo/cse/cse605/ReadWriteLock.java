@@ -2,15 +2,12 @@ package edu.buffalo.cse.cse605;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.rmi.runtime.Log;
 
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created with IntelliJ IDEA.
@@ -73,33 +70,19 @@ public class ReadWriteLock {
 		}
 
 		@Override
-		public void acquire() throws InterruptedException {
-			numberOfWritersWaiting.incrementAndGet();
-			super.acquire();
-		}
-
-		@Override
 		protected void acquireResources() {
 			boolean updateWriteStatus = currentlyWriting.compareAndSet(false, true);
+			int previousNumberOfWriters = numberOfWritersWaiting.getAndDecrement();
 
-			if (updateWriteStatus) {
-				throw new IllegalStateException("Multiple concurrent writes!");
-			}
+			assert updateWriteStatus;
+			assert previousNumberOfWriters > 0;
 
-			numberOfWritersWaiting.decrementAndGet();
 		}
 
 		@Override
 		public void acquire() throws InterruptedException {
 			numberOfWritersWaiting.incrementAndGet();
-
 			super.acquire();
-			boolean successAcquiringLock = currentlyWriting.compareAndSet(false, true);
-
-			int previousNumberOfWriters = numberOfWritersWaiting.getAndDecrement();
-
-			assert previousNumberOfWriters > 0;
-			assert successAcquiringLock;
 
 			Log.debug("Allocated resources for writing for thread {}", Thread.currentThread().getName());
 		}
@@ -132,14 +115,13 @@ public class ReadWriteLock {
 							pendingLocks.add(this);
 					}
 
-			synchronized (ReadWriteLock.this) {
-				while (!canContinue(false) && !allocatedResources) {
 					sleep();
+
 				}
+
+
 			}
-
 			Log.debug("Lock {} acquired by thread {}.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
-
 
 		}
 
