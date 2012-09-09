@@ -25,7 +25,7 @@ public class ReadWriteLock {
 	private Queue<Lock> pendingLocks = new LinkedList<Lock>();
 
 	private synchronized void flushQueue() {
-		while (pendingLocks.peek().canContinue(true)) {
+		while (!pendingLocks.isEmpty() && pendingLocks.peek().canContinue(true)) {
 			pendingLocks.poll().resume();
 		}
 	}
@@ -43,7 +43,6 @@ public class ReadWriteLock {
 		@Override
 		protected void releaseResources() {
 			outstandingReadLocks.decrementAndGet();
-			flushQueue();
 		}
 
 		@Override
@@ -71,26 +70,31 @@ public class ReadWriteLock {
 		}
 
 		@Override
+		public void acquire() throws InterruptedException {
+			numberOfWritersWaiting.incrementAndGet();
+			super.acquire();
+		}
+
+		@Override
 		protected void acquireResources() {
 			boolean successAcquiringLock = currentlyWriting.compareAndSet(false, true);
 
-			if (successAcquiringLock) {
-				AtomicBoolean writerWaiting = new AtomicBoolean(false);
-				throw new IllegalStateException("Multiple concurrent writes!");
-			}
+			int previousNumberOfWriters = numberOfWritersWaiting.getAndDecrement();
+
+			assert previousNumberOfWriters > 0;
+			assert successAcquiringLock;
 
 			Log.debug("Allocated resources for writing for thread {}", Thread.currentThread().getName());
 		}
 
 		@Override
 		protected boolean canContinue(boolean topOfQueue) {
-			return outstandingReadLocks.get() == 0 && !currentlyWriting.get();
+			return outstandingReadLocks.get() == 0 && (allocatedResources.get() || !currentlyWriting.get());
 		}
 	}
 
 	public abstract class Lock {
-		private Thread thread;
-		private AtomicBoolean allocatedResources = new AtomicBoolean(false);
+		protected AtomicBoolean allocatedResources = new AtomicBoolean(false);
 
 		/**
 		 * Acquires the requested lock, blocking if necessary.
@@ -98,16 +102,26 @@ public class ReadWriteLock {
 		 * @throws InterruptedException If thread was interrupted
 		 */
 		public void acquire() throws InterruptedException {
-			synchronized (ReadWriteLock.this) {
-				while (!canContinue(false)) {
+			synchronized (this) {
+				while (true) {
+					synchronized (ReadWriteLock.this) {
+						if(canContinue(false)) {
+							assureResourcesAcquired();
+							pendingLocks.remove(this);
+							break;
+						}
+
+						if(!pendingLocks.contains(this))
+							pendingLocks.add(this);
+					}
+
 					sleep();
 				}
-
-				Log.debug("Lock {} acquired by thread {}.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
-
-				assureResourcesAcquired();
-
 			}
+
+			Log.debug("Lock {} acquired by thread {}.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
+
+
 		}
 
 		/**
@@ -136,9 +150,19 @@ public class ReadWriteLock {
 		public void release() {
 			synchronized (ReadWriteLock.this) {
 				Log.debug("Releasing lock {} by thread {}.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
-				releaseResources();
+				releaseHeldResources();
 				flushQueue();
 			}
+		}
+
+		private void releaseHeldResources() {
+			boolean status = allocatedResources.compareAndSet(true, false);
+
+			if(!status) {
+				throw new IllegalStateException("Releasing lock not held!");
+			}
+
+			releaseResources();
 		}
 
 		protected abstract void releaseResources();
@@ -146,21 +170,21 @@ public class ReadWriteLock {
 		protected void sleep() throws InterruptedException {
 			Log.debug("Lock {} not available for thread {}, sleeping.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
 
-			thread = Thread.currentThread();
-			pendingLocks.add(this);
-			wait();
+			this.wait();
 		}
 
 		private void resume() {
 			Log.debug("Acquiring resources & resuming thread {} -- ready for lock acquisition.", Thread.currentThread().getName());
-			acquireResources();
+			assureResourcesAcquired();
 			awake();
 		}
 
 		protected abstract void acquireResources();
 
 		private void awake() {
-			thread.notify();
+			synchronized (this) {
+				this.notify();
+			}
 		}
 
 		protected abstract boolean canContinue(boolean topOfQueue);
