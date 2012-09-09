@@ -1,5 +1,6 @@
 package edu.buffalo.cse.cse605;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.*;
@@ -12,6 +13,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Time: 4:45 PM
  */
 public class ReadWriteLockTest {
+	@Test
+	public void testReadwriteReadConsistency() throws Exception {
+		for (int i = 0; i < 1000; i++) {
+			testReadWriteRead();
+		}
+
+	}
 
 	@Test
 	public void testReadWriteRead() throws Exception {
@@ -21,12 +29,13 @@ public class ReadWriteLockTest {
 		Future<Tuple<Integer, Integer>> firstWrite = ts.submitWriteTask();
 		Future<Tuple<Integer, Integer>> secondRead = ts.submitReadTask();
 
-		firstRead.get();
-		firstWrite.get();
-		secondRead.get();
+		Assert.assertEquals("Incorrect ordering of results", firstRead.get(), new Tuple<Integer, Integer>(1, 0));
+		Assert.assertEquals("Incorrect ordering of results", secondRead.get(), new Tuple<Integer, Integer>(2, 1));
+		Assert.assertEquals("Incorrect ordering of results", firstWrite.get(), new Tuple<Integer, Integer>(1, 1));
 
 		ts.shutdown();
 	}
+
 	@Test
 	public void testRead() throws Exception {
 		TestSystem ts = new TestSystem(new ReadWriteLock());
@@ -50,12 +59,12 @@ public class ReadWriteLockTest {
 			this.masterLock = masterLock;
 		}
 
-		public Future<Tuple<Integer,Integer>> submitReadTask() {
+		public Future<Tuple<Integer, Integer>> submitReadTask() {
 			return submitReadTask(100);
 		}
 
-		public Future<Tuple<Integer,Integer>> submitReadTask(final long numberOfLoops) {
-			return service.submit(new Callable<Tuple<Integer,Integer>>() {
+		public Future<Tuple<Integer, Integer>> submitReadTask(final long numberOfLoops) {
+			return service.submit(new Callable<Tuple<Integer, Integer>>() {
 
 				@Override
 				public Tuple<Integer, Integer> call() throws Exception {
@@ -71,12 +80,12 @@ public class ReadWriteLockTest {
 			service.awaitTermination(60, TimeUnit.SECONDS);
 		}
 
-		public Future<Tuple<Integer,Integer>> submitWriteTask() {
+		public Future<Tuple<Integer, Integer>> submitWriteTask() {
 			return submitWriteTask(100);
 		}
 
-		public Future<Tuple<Integer,Integer>> submitWriteTask(final long numberOfLoops) {
-			return service.submit(new Callable<Tuple<Integer,Integer>>() {
+		public Future<Tuple<Integer, Integer>> submitWriteTask(final long numberOfLoops) {
+			return service.submit(new Callable<Tuple<Integer, Integer>>() {
 
 				@Override
 				public Tuple<Integer, Integer> call() throws Exception {
@@ -90,16 +99,17 @@ public class ReadWriteLockTest {
 		private Tuple<Integer, Integer> executeLock(ReadWriteLock.Lock readLock, long numberOfLoops, boolean incrementRead) throws InterruptedException {
 			readLock.acquire();
 
-			for (int i=0; i < numberOfLoops; i++) {}
+			for (int i = 0; i < numberOfLoops; i++) {
+			}
 
-  			Tuple<Integer, Integer> result = new Tuple<Integer, Integer>(incrementRead?numberOfReadersCompleted.incrementAndGet():numberOfReadersCompleted.get(), !incrementRead?numberOfWritersCompleted.incrementAndGet():numberOfWritersCompleted.get());
-			System.out.println("Releasing ("+numberOfReadersCompleted.get()+","+numberOfWritersCompleted+")");
+			Tuple<Integer, Integer> result = new Tuple<Integer, Integer>(incrementRead ? numberOfReadersCompleted.incrementAndGet() : numberOfReadersCompleted.get(), !incrementRead ? numberOfWritersCompleted.incrementAndGet() : numberOfWritersCompleted.get());
+			System.out.println("Releasing (" + numberOfReadersCompleted.get() + "," + numberOfWritersCompleted + ")");
 			readLock.release();
 			return result;
 		}
 	}
 
-	public class Tuple<A,B> {
+	public class Tuple<A, B> {
 		private final A first;
 		private final B second;
 
@@ -114,6 +124,42 @@ public class ReadWriteLockTest {
 
 		public B getSecond() {
 			return second;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+
+			Tuple tuple = (Tuple) o;
+
+			if (first != null ? !first.equals(tuple.first) : tuple.first != null) {
+				return false;
+			}
+			if (second != null ? !second.equals(tuple.second) : tuple.second != null) {
+				return false;
+			}
+
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "Tuple{" +
+					"first=" + first +
+					", second=" + second +
+					'}';
+		}
+
+		@Override
+		public int hashCode() {
+			int result = first != null ? first.hashCode() : 0;
+			result = 31 * result + (second != null ? second.hashCode() : 0);
+			return result;
 		}
 	}
 }

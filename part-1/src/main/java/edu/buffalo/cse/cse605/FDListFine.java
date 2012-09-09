@@ -1,5 +1,7 @@
 package edu.buffalo.cse.cse605;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Created with IntelliJ IDEA.
  * User: jmlogan
@@ -8,16 +10,16 @@ package edu.buffalo.cse.cse605;
  */
 public class FDListFine<T> {
 	private final Element head;
-    private final Element tail;
+	private final Element tail;
 
 	public FDListFine(T v) {
-        head = new Element(v);
-        tail = new Tail(v);
-        head.setNext(tail);
-        head.setPrev(tail);
-        tail.setNext(head);
-        tail.setPrev(head);
-    }
+		head = new Element(v);
+		tail = new Tail(v);
+		head.setNext(tail);
+		head.setPrev(tail);
+		tail.setNext(head);
+		tail.setPrev(head);
+	}
 
 	public Element head() {
 		return head;
@@ -75,22 +77,20 @@ public class FDListFine<T> {
 		}
 
 		public void next() {
-			if(curr().getNext().isTail()){
-                currentElement = curr().getNext().getNext();
-            }
-            else{
-                currentElement = curr().getNext();
-            }
+			if (curr().getNext().isTail()) {
+				currentElement = curr().getNext().getNext();
+			} else {
+				currentElement = curr().getNext();
+			}
 		}
 
 		public void prev() {
-            if(curr().getPrev().isTail()){
-                currentElement = curr().getPrev().getPrev();
-            }
-            else{
-                currentElement = curr().getPrev();
-            }
-        }
+			if (curr().getPrev().isTail()) {
+				currentElement = curr().getPrev().getPrev();
+			} else {
+				currentElement = curr().getPrev();
+			}
+		}
 
 		public Writer writer() {
 			return new Writer(this);
@@ -98,8 +98,8 @@ public class FDListFine<T> {
 	}
 
 	public class Element {
-		private final GuardedReference<Element> prev;
-		private final GuardedReference<Element> next;
+		private final AtomicReference<Element> prev;
+		private final AtomicReference<Element> next;
 
 		private boolean deleted = false;
 
@@ -107,21 +107,21 @@ public class FDListFine<T> {
 
 		public Element(T value) {
 			this.value = value;
-			prev = new GuardedReference<Element>(this);
-			next = new GuardedReference<Element>(this);
+			prev = new AtomicReference<Element>(this);
+			next = new AtomicReference<Element>(this);
 		}
 
 		public Element(T value, Element prev, Element next) {
 			this.value = value;
-			this.prev = new GuardedReference<Element>(prev);
-			this.next = new GuardedReference<Element>(next);
+			this.prev = new AtomicReference<Element>(prev);
+			this.next = new AtomicReference<Element>(next);
 		}
 
-        public boolean isTail(){
-            return false;
-        }
+		public boolean isTail() {
+			return false;
+		}
 
-        private void adjustNeighbors() {
+		private void adjustNeighbors() {
 			synchronized (prev.get().next) {
 				synchronized (prev) {
 					synchronized (next) {
@@ -154,11 +154,11 @@ public class FDListFine<T> {
 			return value;
 		}
 
-		private boolean delete() throws IllegalStateException{
-			if(getNext().isTail() && getPrev().isTail()){
-                throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
-            }
-            synchronized (prev.get().next) {
+		private boolean delete() throws IllegalStateException {
+			if (getNext().isTail() && getPrev().isTail()) {
+				throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
+			}
+			synchronized (prev.get().next) {
 				synchronized (prev) {
 					synchronized (next) {
 						synchronized (next.get().prev) {
@@ -179,14 +179,14 @@ public class FDListFine<T> {
 		}
 	}
 
-    public class Tail extends Element{
+	public class Tail extends Element {
 
-        public Tail(T value) {
-            super(value);
-        }
+		public Tail(T value) {
+			super(value);
+		}
 
-        public boolean isTail(){
-            return true;
-        }
-    }
+		public boolean isTail() {
+			return true;
+		}
+	}
 }
