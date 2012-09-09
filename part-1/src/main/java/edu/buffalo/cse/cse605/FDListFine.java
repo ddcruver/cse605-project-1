@@ -8,10 +8,16 @@ package edu.buffalo.cse.cse605;
  */
 public class FDListFine<T> {
 	private final Element head;
+    private final Element tail;
 
 	public FDListFine(T v) {
-		head = new Element(v);
-	}
+        head = new Element(v);
+        tail = new Tail(v);
+        head.setNext(tail);
+        head.setPrev(tail);
+        tail.setNext(head);
+        tail.setPrev(head);
+    }
 
 	public Element head() {
 		return head;
@@ -69,12 +75,22 @@ public class FDListFine<T> {
 		}
 
 		public void next() {
-			currentElement = curr().getNext();
+			if(curr().getNext().isTail()){
+                currentElement = curr().getNext().getNext();
+            }
+            else{
+                currentElement = curr().getNext();
+            }
 		}
 
 		public void prev() {
-			currentElement = curr().getPrev();
-		}
+            if(curr().getPrev().isTail()){
+                currentElement = curr().getPrev().getPrev();
+            }
+            else{
+                currentElement = curr().getPrev();
+            }
+        }
 
 		public Writer writer() {
 			return new Writer(this);
@@ -101,7 +117,11 @@ public class FDListFine<T> {
 			this.next = new GuardedReference<Element>(next);
 		}
 
-		private void adjustNeighbors() {
+        public boolean isTail(){
+            return false;
+        }
+
+        private void adjustNeighbors() {
 			synchronized (prev.get().next) {
 				synchronized (prev) {
 					synchronized (next) {
@@ -134,8 +154,11 @@ public class FDListFine<T> {
 			return value;
 		}
 
-		private void delete() {
-			synchronized (prev.get().next) {
+		private boolean delete() throws IllegalStateException{
+			if(getNext().isTail() && getPrev().isTail()){
+                throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
+            }
+            synchronized (prev.get().next) {
 				synchronized (prev) {
 					synchronized (next) {
 						synchronized (next.get().prev) {
@@ -148,10 +171,22 @@ public class FDListFine<T> {
 					}
 				}
 			}
+			return deleted;
 		}
 
 		public boolean isDeleted() {
 			return deleted;
 		}
 	}
+
+    public class Tail extends Element{
+
+        public Tail(T value) {
+            super(value);
+        }
+
+        public boolean isTail(){
+            return true;
+        }
+    }
 }
