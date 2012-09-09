@@ -20,18 +20,19 @@ public class FDListFineThreadedTest {
 
     @Test
     public void threadAccessToListInsertAndRemoveTest() throws InterruptedException {
-        addAndRemoveElements(100, 100);
-        addAndRemoveElements(100, 1000);
-        addAndRemoveElements(100, 10000);
+        addAndRemoveElements(100, 100, 4, 1);
+        addAndRemoveElements(100, 1000, 4, 2);
+        addAndRemoveElements(100, 1000, 2, 2);
+        addAndRemoveElements(100, 10000, 3, 4);
     }
 
-    private void addAndRemoveElements(int threadPoolSize, int sleepTime) throws InterruptedException {
+    private void addAndRemoveElements(int threadPoolSize, int sleepTime, int numberInserts, int numberDeletes) throws InterruptedException {
         final FDListFine<Double> list = createListOfSizeOne();
         final AtomicInteger inserts = new AtomicInteger(1);
         final AtomicInteger deletes = new AtomicInteger(1);
         final AtomicBoolean continueRun = new AtomicBoolean(true);
 
-        addAndRemoveFromList(list, inserts, deletes, continueRun, threadPoolSize);
+        addAndRemoveFromList(list, inserts, deletes, continueRun, threadPoolSize, numberInserts, numberDeletes);
         sleepAndWakeThread(continueRun, sleepTime);
         printSummaryResults(inserts, deletes);
         testResults(list, inserts.get() - deletes.get());
@@ -54,11 +55,11 @@ public class FDListFineThreadedTest {
             else{
                 count++;
                 reader.next();
-                System.out.println(count + " " + reader.curr().value().doubleValue());
+                //System.out.println(count + " " + reader.curr().value().doubleValue());
             }
         }
 
-        Assert.assertEquals("Expected list size different from size: " + listSize + " " + count, listSize, count);
+        Assert.assertEquals("Expected list size different from size: ", listSize + 1, count);
 
     }
 
@@ -76,7 +77,8 @@ public class FDListFineThreadedTest {
     }
 
     private void addAndRemoveFromList(final FDListFine<Double> list, final AtomicInteger insertSize, final AtomicInteger removeSize,
-                                      final AtomicBoolean continueRun, int threadPoolSize) {
+                                      final AtomicBoolean continueRun, int threadPoolSize,
+                                      final int numberInserts, final int numberDeletes) {
         // Create the ThreadPool
         ExecutorService tpe = Executors.newFixedThreadPool(threadPoolSize);
         tpe.submit(new Runnable() {
@@ -86,16 +88,25 @@ public class FDListFineThreadedTest {
                 boolean add = true;
                 while(continueRun.get()){
                     if(add){
-                        reader.writer().insertAfter(getRandomDouble());
-                        insertSize.incrementAndGet();
+                        for(int i =0; i < numberInserts; i++){
+                            reader.writer().insertAfter(getRandomDouble());
+                            insertSize.incrementAndGet();
+                        }
                         add = false;
 
                     }
                     else{
-                        reader.writer().delete();
-                        removeSize.incrementAndGet();
-                        insertSize.incrementAndGet();
-                        add = true;
+                        try{
+                            reader.next();
+                            for(int i =0; i < numberDeletes; i++){
+                                reader.writer().delete();
+                                removeSize.incrementAndGet();
+                            }
+                            add = true;
+                        }
+                        catch (Exception e){
+                            //e.printStackTrace();
+                        }
                     }
                 }
             }

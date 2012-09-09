@@ -11,7 +11,7 @@ public class FDListFine<T> {
     private final Element tail;
 
 	public FDListFine(T v) {
-        head = new Element(v);
+        head = new Head(v);
         tail = new Tail(v);
         head.setNext(tail);
         head.setPrev(tail);
@@ -121,6 +121,10 @@ public class FDListFine<T> {
             return false;
         }
 
+        public boolean isHead(){
+            return false;
+        }
+
         private void adjustNeighbors() {
 			synchronized (prev.get().next) {
 				synchronized (prev) {
@@ -158,6 +162,10 @@ public class FDListFine<T> {
 			if(getNext().isTail() && getPrev().isTail()){
                 throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
             }
+            if(isHead()){
+                throw new IllegalStateException("delete() operation tried to delete head element from list.");
+            }
+
             synchronized (prev.get().next) {
 				synchronized (prev) {
 					synchronized (next) {
@@ -186,6 +194,17 @@ public class FDListFine<T> {
         }
 
         public boolean isTail(){
+            return true;
+        }
+    }
+
+    public class Head extends Element{
+
+        public Head(T value) {
+            super(value);
+        }
+
+        public boolean isHead(){
             return true;
         }
     }
