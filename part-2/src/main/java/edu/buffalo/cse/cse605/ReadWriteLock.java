@@ -9,6 +9,9 @@ import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Created with IntelliJ IDEA.
  * User: jmlogan
@@ -77,6 +80,20 @@ public class ReadWriteLock {
 
 		@Override
 		protected void acquireResources() {
+			boolean updateWriteStatus = currentlyWriting.compareAndSet(false, true);
+
+			if (updateWriteStatus) {
+				throw new IllegalStateException("Multiple concurrent writes!");
+			}
+
+			numberOfWritersWaiting.decrementAndGet();
+		}
+
+		@Override
+		public void acquire() throws InterruptedException {
+			numberOfWritersWaiting.incrementAndGet();
+
+			super.acquire();
 			boolean successAcquiringLock = currentlyWriting.compareAndSet(false, true);
 
 			int previousNumberOfWriters = numberOfWritersWaiting.getAndDecrement();
@@ -115,6 +132,8 @@ public class ReadWriteLock {
 							pendingLocks.add(this);
 					}
 
+			synchronized (ReadWriteLock.this) {
+				while (!canContinue(false) && !allocatedResources) {
 					sleep();
 				}
 			}
