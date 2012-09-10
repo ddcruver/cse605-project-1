@@ -9,68 +9,84 @@ package edu.buffalo.cse.cse605;
 public class FDList<T> {
 	private Element head;
 
-	public FDList(T v) {
-		head = new Element(v);
+	public FDList(T v) throws InterruptedException {
+		head = createElement(v);
 	}
 
 	public Element head() {
 		return head;
 	}
 
-	public Cursor reader(Element from) {
+	public Cursor reader(Element from) throws InterruptedException {
+		return createCursor(from);
+	}
+
+	protected Element createElement(T val, Element prev, Element next) throws InterruptedException {
+		return new Element(val, prev, next);
+	}
+
+	protected Element createElement(T val) throws InterruptedException {
+		return new Element(val);
+	}
+
+	protected Cursor createCursor(Element from) throws InterruptedException {
 		return new Cursor(from);
+	}
+
+	protected Writer createWriter(Cursor from) throws InterruptedException {
+		return new Writer(from);
 	}
 
 	public class Writer {
 		private final Element currentElement;
 		private final Cursor cursor;
 
-		public Writer(Cursor cursor) {
+		protected Writer(Cursor cursor) throws InterruptedException {
 			this.cursor = cursor;
 			this.currentElement = cursor.curr();
 		}
 
 
-		public boolean delete() {
+		public boolean delete() throws InterruptedException {
 			currentElement.delete();
 			cursor.next();
 			return true;
 		}
 
-		public boolean insertBefore(T val) {
-			Element newElement = new Element(val, currentElement.getPrev(), currentElement);
+		public boolean insertBefore(T val) throws InterruptedException {
+			Element newElement = createElement(val, currentElement.getPrev(), currentElement);
 			newElement.adjustNeighbors();
 			return true;
 		}
 
-		public boolean insertAfter(T val) {
-			Element newElement = new Element(val, currentElement, currentElement.getNext());
+		public boolean insertAfter(T val) throws InterruptedException {
+			Element newElement = createElement(val, currentElement, currentElement.getNext());
 			newElement.adjustNeighbors();
 			return true;
 		}
 	}
 
 	public class Cursor {
-		private Element currentElement;
+		protected Element currentElement;
 
-		private Cursor(Element currentElement) {
+		protected Cursor(Element currentElement) {
 			this.currentElement = currentElement;
 		}
 
-		public Element curr() {
+		public Element curr() throws InterruptedException {
 			return currentElement;
 		}
 
-		public void next() {
+		public void next() throws InterruptedException {
 			currentElement = curr().getNext();
 		}
 
-		public void prev() {
+		public void prev() throws InterruptedException {
 			currentElement = curr().getPrev();
 		}
 
-		public Writer writer() {
-			return new Writer(this);
+		public Writer writer() throws InterruptedException {
+			return createWriter(this);
 		}
 	}
 
@@ -80,13 +96,13 @@ public class FDList<T> {
 
 		private T value;
 
-		public Element(T value) {
+		protected Element(T value) {
 			this.value = value;
 			prev = this;
 			next = this;
 		}
 
-		public Element(T value, Element prev, Element next) {
+		protected Element(T value, Element prev, Element next) {
 			this.value = value;
 			this.prev = prev;
 			this.next = next;
@@ -97,7 +113,7 @@ public class FDList<T> {
 			next.setPrev(this);
 		}
 
-		private Element getNext() {
+		protected Element getNext() throws InterruptedException {
 			return next;
 		}
 
@@ -105,7 +121,7 @@ public class FDList<T> {
 			this.next = next;
 		}
 
-		private Element getPrev() {
+		protected Element getPrev() throws InterruptedException {
 			return prev;
 		}
 
@@ -113,7 +129,7 @@ public class FDList<T> {
 			this.prev = prev;
 		}
 
-		public T value() {
+		public T value() throws InterruptedException {
 			return value;
 		}
 

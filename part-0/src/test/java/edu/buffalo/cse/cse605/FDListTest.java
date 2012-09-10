@@ -98,7 +98,7 @@ public class FDListTest {
 		Assert.assertEquals(first, reader.curr().value());
 	}
 
-	private void assertListSame(FDList<String>.Cursor reader, String[] expected) {
+	private void assertListSame(FDList<String>.Cursor reader, String[] expected) throws InterruptedException {
 		for (String element : expected) {
 			Assert.assertEquals(reader.curr().value(), element);
 
