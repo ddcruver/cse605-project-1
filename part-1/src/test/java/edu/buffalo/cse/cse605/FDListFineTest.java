@@ -2,6 +2,15 @@ package edu.buffalo.cse.cse605;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static junit.framework.Assert.assertEquals;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,8 +21,10 @@ import org.junit.Test;
  */
 public class FDListFineTest {
 
+	private Logger Log = LoggerFactory.getLogger(FDListFineTest.class);
 
-    @Test
+
+	@Test
     public void testTailIsHiddenForOneElement(){
         String first = "first";
         FDListFine<String> list = new FDListFine<String>(first);
@@ -166,5 +177,83 @@ public class FDListFineTest {
         // assert the circularity
         Assert.assertEquals(reader.curr().value(), expected[0]);
     }
+
+	@Test
+	public void testConcurrentAdd()
+	{
+
+		List<Runnable> runnables = new ArrayList<Runnable>();
+
+		FDListFine<String> list = new FDListFine<String>("head");
+		final FDListFine<String>.Cursor reader = list.reader(list.head());
+
+		final int threadCount = 10;
+		final int inserts = 10;
+		for (int i = 0; i < threadCount; i++)
+		{
+			final int p = i;
+
+			final Runnable r = new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					for(int j = 0; j < inserts; j++)
+					{
+						reader.next();
+						reader.writer().insertAfter(p + ":" + j);
+						reader.next();
+					}
+				}
+			};
+
+			runnables.add(r);
+		}
+
+		Set<Thread> threads = new HashSet<Thread>();
+
+		for (Runnable r : runnables)
+		{
+			Thread th = new Thread(r);
+			th.start();
+			threads.add(th);
+		}
+
+		boolean threadsAlive = true;
+		while(threads.size() > 0 && threadsAlive)
+		{
+			threadsAlive = false;
+			for(Thread th : threads)
+			{
+				if(th.isAlive())
+					threadsAlive = true;
+			}
+		}
+
+		printList(list.reader(list.head()));
+		long listCount = countList(list.reader(list.head()));
+		assertEquals(threadCount * inserts + 1, listCount);
+	}
+
+	private long countList(FDListFine<String>.Cursor reader)
+	{
+		long listLength = 0;
+		do
+		{
+			listLength++;
+			reader.next();
+		} while(!reader.curr().isHead());
+		Log.debug("List has {} items in it", listLength);
+		return listLength;
+	}
+
+	private void printList(FDListFine<String>.Cursor reader)
+	{
+		do
+		{
+			Log.debug("List Item: {}", reader.curr().value());
+			reader.next();
+		} while(!reader.curr().isHead());
+	}
 
 }

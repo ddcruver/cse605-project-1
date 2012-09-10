@@ -9,14 +9,12 @@ package edu.buffalo.cse.cse605;
 public class FDCoarse<T>
 {
 	private final Element head;
-	private final Element tail;
+	private final Element tail = new Tail(null);
 
 	public FDCoarse(T v)
 	{
-		head = new Element(v);
-		tail = new Tail(v);
+		head = new Head(v);
 		head.setNext(tail);
-		head.setPrev(tail);
 		tail.setNext(head);
 		tail.setPrev(head);
 	}
@@ -133,6 +131,12 @@ public class FDCoarse<T>
 			this.next = next;
 		}
 
+		public boolean isHead()
+		{
+			return false;
+		}
+
+
 		public boolean isTail()
 		{
 			return false;
@@ -198,9 +202,33 @@ public class FDCoarse<T>
 			super(value);
 		}
 
+		public boolean isHead()
+		{
+			return false;
+		}
+
 		public boolean isTail()
 		{
 			return true;
+		}
+	}
+
+	public class Head extends Element
+	{
+
+		public Head(T value)
+		{
+			super(value);
+		}
+
+		public boolean isHead()
+		{
+			return true;
+		}
+
+		public boolean isTail()
+		{
+			return false;
 		}
 	}
 }
