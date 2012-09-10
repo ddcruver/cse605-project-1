@@ -17,7 +17,6 @@ import static junit.framework.Assert.assertEquals;
  * User: delvecchio
  * Date: 9/8/12
  * Time: 2:39 PM
- * To change this template use File | Settings | File Templates.
  */
 public class FDListFineTest {
 
@@ -232,14 +231,6 @@ public class FDListFineTest {
 					break;
 				}
 			}
-		}
-
-		try
-		{
-			Thread.sleep(10000);
-		} catch (InterruptedException e)
-		{
-			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
 		}
 
 		printList(list.reader(list.head()));

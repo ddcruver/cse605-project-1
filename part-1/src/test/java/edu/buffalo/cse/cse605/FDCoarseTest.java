@@ -94,14 +94,6 @@ public class FDCoarseTest
 			}
 		}
 
-		try
-		{
-			Thread.sleep(10000);
-		} catch (InterruptedException e)
-		{
-			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-		}
-
 		printList(list.reader(list.head()));
 		long listCount = countList(list.reader(list.head()));
 		assertEquals(threadCount * inserts + 1, listCount);
