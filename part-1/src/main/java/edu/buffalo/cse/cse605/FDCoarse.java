@@ -10,9 +10,11 @@ public class FDCoarse<T>
 {
 	private final Element head;
 	private final Element tail = new Tail(null);
+	private final Object listLock = new Object();
 
 	public FDCoarse(T v)
 	{
+
 		head = new Head(v);
 		head.setNext(tail);
 		tail.setNext(head);
@@ -41,27 +43,36 @@ public class FDCoarse<T>
 		}
 
 
-		public synchronized void delete()
+		public void delete()
 		{
-			if (currentElement.isDeleted())
+			synchronized (listLock)
 			{
-				throw new IllegalStateException("The requested element was previously deleted.");
+				if (currentElement.isDeleted())
+				{
+					throw new IllegalStateException("The requested element was previously deleted.");
+				}
+				currentElement.delete();
+				cursor.next();
 			}
-			currentElement.delete();
-			cursor.next();
 		}
 
-		public synchronized boolean insertBefore(T val)
+		public boolean insertBefore(T val)
 		{
-			Element newElement = new Element(val, currentElement.getPrev(), currentElement);
-			newElement.adjustNeighbors();
+			synchronized (listLock)
+			{
+				Element newElement = new Element(val, currentElement.getPrev(), currentElement);
+				newElement.adjustNeighbors();
+			}
 			return true;
 		}
 
-		public synchronized boolean insertAfter(T val)
+		public boolean insertAfter(T val)
 		{
-			Element newElement = new Element(val, currentElement, currentElement.getNext());
-			newElement.adjustNeighbors();
+			synchronized (listLock)
+			{
+				Element newElement = new Element(val, currentElement, currentElement.getNext());
+				newElement.adjustNeighbors();
+			}
 			return true;
 		}
 	}
@@ -142,7 +153,7 @@ public class FDCoarse<T>
 			return false;
 		}
 
-		private synchronized void adjustNeighbors()
+		private void adjustNeighbors()
 		{
 			prev.setNext(this);
 			next.setPrev(this);
@@ -173,18 +184,20 @@ public class FDCoarse<T>
 			return value;
 		}
 
-		private synchronized boolean delete() throws IllegalStateException
+		private boolean delete() throws IllegalStateException
 		{
-			if (getNext().isTail() && getPrev().isTail())
+			synchronized (listLock)
 			{
-				throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
+				if (getNext().isTail() && getPrev().isTail())
+				{
+					throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
+				}
+
+				deleted = true; // invalidates cursors pointing here
+
+				prev.setNext(next);
+				next.setPrev(prev);
 			}
-
-			deleted = true; // invalidates cursors pointing here
-
-			prev.setNext(next);
-			next.setPrev(prev);
-
 			return deleted;
 		}
 
