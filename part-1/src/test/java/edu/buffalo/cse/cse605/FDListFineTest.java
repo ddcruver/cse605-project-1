@@ -184,7 +184,7 @@ public class FDListFineTest {
 
 		List<Runnable> runnables = new ArrayList<Runnable>();
 
-		FDListFine<String> list = new FDListFine<String>("head");
+		final FDListFine<String> list = new FDListFine<String>("head");
 		final FDListFine<String>.Cursor reader = list.reader(list.head());
 
 		final int threadCount = 10;
@@ -198,9 +198,10 @@ public class FDListFineTest {
 				@Override
 				public void run()
 				{
+					FDListFine<String>.Cursor reader = list.reader(list.head());
+
 					for(int j = 0; j < inserts; j++)
 					{
-						reader.next();
 						reader.writer().insertAfter(p + ":" + j);
 						reader.next();
 					}
@@ -226,8 +227,19 @@ public class FDListFineTest {
 			for(Thread th : threads)
 			{
 				if(th.isAlive())
+				{
 					threadsAlive = true;
+					break;
+				}
 			}
+		}
+
+		try
+		{
+			Thread.sleep(10000);
+		} catch (InterruptedException e)
+		{
+			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
 		}
 
 		printList(list.reader(list.head()));

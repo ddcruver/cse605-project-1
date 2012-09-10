@@ -44,7 +44,7 @@ public class FDCoarseTest
 
 		List<Runnable> runnables = new ArrayList<Runnable>();
 
-		FDCoarse<String> list = new FDCoarse<String>("first");
+		final FDCoarse<String> list = new FDCoarse<String>("first");
 		final FDCoarse<String>.Cursor reader = list.reader(list.head());
 
 		Set<Thread> threads = new HashSet<Thread>();
@@ -60,9 +60,10 @@ public class FDCoarseTest
 				@Override
 				public void run()
 				{
+					FDCoarse<String>.Cursor reader = list.reader(list.head());
+
 					for(int j = 0; j < inserts; j++)
 					{
-						reader.next();
 						reader.writer().insertAfter(p + ":" + j);
 						reader.next();
 					}
@@ -86,8 +87,19 @@ public class FDCoarseTest
 			for(Thread th : threads)
 			{
 				if(th.isAlive())
+				{
 					threadsAlive = true;
+					break;
+				}
 			}
+		}
+
+		try
+		{
+			Thread.sleep(10000);
+		} catch (InterruptedException e)
+		{
+			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
 		}
 
 		printList(list.reader(list.head()));
