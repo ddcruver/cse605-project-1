@@ -20,10 +20,10 @@ public class FDListFineThreadedTest {
 
     @Test
     public void threadAccessToListInsertAndRemoveTest() throws InterruptedException {
-        addAndRemoveElements(100, 100, 4, 1);
-        addAndRemoveElements(100, 1000, 4, 2);
-        addAndRemoveElements(100, 1000, 2, 2);
-        addAndRemoveElements(100, 10000, 3, 4);
+        addAndRemoveElements(160, 1000, 4, 1);
+        addAndRemoveElements(160, 1000, 4, 2);
+        addAndRemoveElements(160, 1000, 1, 1);
+        addAndRemoveElements(160, 1000, 3, 4);
     }
 
     private void addAndRemoveElements(int threadPoolSize, int sleepTime, int numberInserts, int numberDeletes) throws InterruptedException {
@@ -81,36 +81,39 @@ public class FDListFineThreadedTest {
                                       final int numberInserts, final int numberDeletes) {
         // Create the ThreadPool
         ExecutorService tpe = Executors.newFixedThreadPool(threadPoolSize);
-        tpe.submit(new Runnable() {
-            @Override
-            public void run() {
-                FDListFine<Double>.Cursor reader = list.reader(list.head());
-                boolean add = true;
-                while(continueRun.get()){
-                    if(add){
-                        for(int i =0; i < numberInserts; i++){
-                            reader.writer().insertAfter(getRandomDouble());
-                            insertSize.incrementAndGet();
-                        }
-                        add = false;
-
-                    }
-                    else{
-                        try{
-                            reader.next();
-                            for(int i =0; i < numberDeletes; i++){
-                                reader.writer().delete();
-                                removeSize.incrementAndGet();
+        for(int i = 0; i < threadPoolSize; i++){
+            tpe.submit(new Runnable() {
+                @Override
+                public void run() {
+                    FDListFine<Double>.Cursor reader = list.reader(list.head());
+                    boolean add = true;
+                    while(continueRun.get()){
+                        if(add){
+                            for(int i =0; i < numberInserts; i++){
+                                reader.writer().insertAfter(getRandomDouble());
+                                insertSize.incrementAndGet();
                             }
-                            add = true;
+                            add = false;
+
                         }
-                        catch (Exception e){
-                            //e.printStackTrace();
+                        else{
+                            try{
+                                reader.next();
+                                for(int i =0; i < numberDeletes; i++){
+                                    reader.writer().delete();
+                                    removeSize.incrementAndGet();
+                                }
+                                add = true;
+                            }
+                            catch (Exception e){
+                                //e.printStackTrace();
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+
+        }
     }
 
     private FDListFine<Double> createListOfSizeOne() {
