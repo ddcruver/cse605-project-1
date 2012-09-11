@@ -13,7 +13,7 @@ public class FDListFine<T> {
 	private final Element tail;
 
 	public FDListFine(T v) {
-        head = new Head(v);
+		head = new Head(v);
 		tail = new Tail(v);
 		head.setNext(tail);
 		head.setPrev(tail);
@@ -40,34 +40,43 @@ public class FDListFine<T> {
 
 
 		public void delete() {
-			synchronized (currentElement) {
-                synchronized(cursor){
-                    if (currentElement.isDeleted()) {
-                        throw new IllegalStateException("The requested element was previously deleted.");
-                    }
-                    currentElement.delete();
-                    cursor.next();
-                }
+
+			synchronized (currentElement.prev.get().next) {
+				synchronized (currentElement.prev) {
+					synchronized (currentElement.next) {
+						synchronized (currentElement.next.get().prev) {
+							if (currentElement.isDeleted()) {
+								throw new IllegalStateException("The requested element was previously deleted.");
+							}
+							currentElement.delete();
+							cursor.next();
+						}
+					}
+				}
 			}
 		}
 
 		public boolean insertBefore(T val) {
-			synchronized (currentElement){
-                synchronized (currentElement.getPrev().next) {
-                    Element newElement = new Element(val, currentElement.getPrev(), currentElement);
-                    newElement.adjustNeighbors();
-                }
-            }
+//			synchronized (currentElement){
+			synchronized (currentElement.getPrev().next) {
+				synchronized (currentElement.prev) {
+					Element newElement = new Element(val, currentElement.getPrev(), currentElement);
+					newElement.adjustNeighbors();
+				}
+			}
+//            }
 			return true;
 		}
 
 		public boolean insertAfter(T val) {
-			synchronized (currentElement.getNext()){
-                synchronized (currentElement){
-                    Element newElement = new Element(val, currentElement, currentElement.getNext());
-                    newElement.adjustNeighbors();
-                }
-            }
+			synchronized (currentElement.next) {
+				synchronized (currentElement.getNext().prev) {
+//                synchronized (currentElement){
+					Element newElement = new Element(val, currentElement, currentElement.getNext());
+					newElement.adjustNeighbors();
+//                }
+				}
+			}
 			return true;
 		}
 	}
@@ -84,18 +93,26 @@ public class FDListFine<T> {
 		}
 
 		public void next() {
-			if (curr().getNext().isTail()) {
-				currentElement = curr().getNext().getNext();
-			} else {
-				currentElement = curr().getNext();
+			synchronized (currentElement.next) {
+				synchronized (currentElement.next.get().prev) {
+					if (curr().getNext().isTail()) {
+						currentElement = curr().getNext().getNext();
+					} else {
+						currentElement = curr().getNext();
+					}
+				}
 			}
 		}
 
 		public void prev() {
-			if (curr().getPrev().isTail()) {
-				currentElement = curr().getPrev().getPrev();
-			} else {
-				currentElement = curr().getPrev();
+			synchronized (currentElement.prev.get().next) {
+				synchronized (currentElement.prev) {
+					if (curr().getPrev().isTail()) {
+						currentElement = curr().getPrev().getPrev();
+					} else {
+						currentElement = curr().getPrev();
+					}
+				}
 			}
 		}
 
@@ -108,7 +125,7 @@ public class FDListFine<T> {
 		private final AtomicReference<Element> prev;
 		private final AtomicReference<Element> next;
 
-		private boolean deleted = false;
+		private volatile boolean deleted = false;
 
 		private T value;
 
@@ -128,19 +145,17 @@ public class FDListFine<T> {
 			return false;
 		}
 
-        public boolean isHead(){
-            return false;
-        }
+		public boolean isHead() {
+			return false;
+		}
 
 		private void adjustNeighbors() {
 			synchronized (prev.get().next) {
 				synchronized (prev) {
 					synchronized (next) {
 						synchronized (next.get().prev) {
-							synchronized (this){
-                                prev.get().setNext(this);
-                                next.get().setPrev(this);
-                            }
+							prev.get().setNext(this);
+							next.get().setPrev(this);
 						}
 					}
 				}
@@ -148,19 +163,31 @@ public class FDListFine<T> {
 		}
 
 		private Element getNext() {
-			return next.get();
+			synchronized (next) {
+				synchronized (next.get().prev) {
+					return next.get();
+				}
+			}
 		}
 
 		private void setNext(Element next) {
-			this.next.set(next);
+			synchronized (this.next) {
+				this.next.set(next);
+			}
 		}
 
 		private Element getPrev() {
-			return prev.get();
+			synchronized (prev.get().next) {
+				synchronized (prev) {
+					return prev.get();
+				}
+			}
 		}
 
 		private void setPrev(Element prev) {
-			this.prev.set(prev);
+			synchronized (this.prev) {
+				this.prev.set(prev);
+			}
 		}
 
 		public T value() {
@@ -172,23 +199,23 @@ public class FDListFine<T> {
 				synchronized (prev) {
 					synchronized (next) {
 						synchronized (next.get().prev) {
-                            synchronized (prev.get()){
-                                synchronized (next.get()){
-                                    synchronized (this) {
-                                        if (getNext().isTail() && getPrev().isTail()) {
-                                            throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
-                                        }
-                                        if(isHead()){
-                                            throw new IllegalStateException("delete() operation tried to delete head element from list.");
-                                        }
-                                        deleted = true; // invalidates cursors pointing here
-                                        prev.get().setNext(next.get());
-                                        next.get().setPrev(prev.get());
-                                    }
-                                }
-                            }
+//                            synchronized (prev.get()){
+//                                synchronized (next.get()){
+//                                    synchronized (this) {
+							if (getNext().isTail() && getPrev().isTail()) {
+								throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
+							}
+							if (isHead()) {
+								throw new IllegalStateException("delete() operation tried to delete head element from list.");
+							}
+							deleted = true; // invalidates cursors pointing here
+							prev.get().setNext(next.get());
+							next.get().setPrev(prev.get());
+//                                    }
 						}
 					}
+//						}
+//					}
 				}
 			}
 			return deleted;
@@ -210,14 +237,14 @@ public class FDListFine<T> {
 		}
 	}
 
-    public class Head extends Element{
+	public class Head extends Element {
 
-        public Head(T value) {
-            super(value);
-        }
+		public Head(T value) {
+			super(value);
+		}
 
-        public boolean isHead(){
-            return true;
-        }
-    }
+		public boolean isHead() {
+			return true;
+		}
+	}
 }
