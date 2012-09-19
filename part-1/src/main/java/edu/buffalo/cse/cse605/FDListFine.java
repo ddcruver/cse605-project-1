@@ -40,20 +40,20 @@ public class FDListFine<T> {
 
 
 		public void delete() {
-			synchronized (currentElement) {
-                synchronized(cursor){
+			//synchronized (currentElement) {
+            //    synchronized(cursor){
                     if (currentElement.isDeleted()) {
                         throw new IllegalStateException("The requested element was previously deleted.");
                     }
                     currentElement.delete();
                     cursor.next();
-                }
-			}
+            //    }
+			//}
 		}
 
 		public boolean insertBefore(T val) {
-			synchronized (currentElement){
-                synchronized (currentElement.getPrev().next) {
+			synchronized (currentElement.getPrev().next){
+                synchronized (currentElement.getPrev()) {
                     Element newElement = new Element(val, currentElement.getPrev(), currentElement);
                     newElement.adjustNeighbors();
                 }
@@ -63,7 +63,7 @@ public class FDListFine<T> {
 
 		public boolean insertAfter(T val) {
 			synchronized (currentElement.getNext()){
-                synchronized (currentElement){
+                synchronized (currentElement.getNext().prev){
                     Element newElement = new Element(val, currentElement, currentElement.getNext());
                     newElement.adjustNeighbors();
                 }
@@ -137,10 +137,8 @@ public class FDListFine<T> {
 				synchronized (prev) {
 					synchronized (next) {
 						synchronized (next.get().prev) {
-							synchronized (this){
-                                prev.get().setNext(this);
-                                next.get().setPrev(this);
-                            }
+                            prev.get().setNext(this);
+                            next.get().setPrev(this);
 						}
 					}
 				}
@@ -168,25 +166,18 @@ public class FDListFine<T> {
 		}
 
 		private boolean delete() throws IllegalStateException {
+			if(isHead())
+			{
+				throw new IllegalStateException("delete() operation tried to delete head element from list.");
+			}
+
 			synchronized (prev.get().next) {
 				synchronized (prev) {
 					synchronized (next) {
 						synchronized (next.get().prev) {
-                            synchronized (prev.get()){
-                                synchronized (next.get()){
-                                    synchronized (this) {
-                                        if (getNext().isTail() && getPrev().isTail()) {
-                                            throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
-                                        }
-                                        if(isHead()){
-                                            throw new IllegalStateException("delete() operation tried to delete head element from list.");
-                                        }
-                                        deleted = true; // invalidates cursors pointing here
-                                        prev.get().setNext(next.get());
-                                        next.get().setPrev(prev.get());
-                                    }
-                                }
-                            }
+                            deleted = true; // invalidates cursors pointing here
+                            prev.get().setNext(next.get());
+                            next.get().setPrev(prev.get());
 						}
 					}
 				}
