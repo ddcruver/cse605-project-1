@@ -7,6 +7,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,13 +22,15 @@ public class FDListFineThreadedTest {
 
 	@Test
 	public void threadAccessToListInsertAndRemoveTest() throws InterruptedException {
-		addAndRemoveElements(numberOfThreads, 1000, 4, 1);
-		addAndRemoveElements(numberOfThreads, 1000, 4, 2);
-		addAndRemoveElements(numberOfThreads, 1000, 1, 1);
-		addAndRemoveElements(numberOfThreads, 1000, 3, 4);
+//        for(int i = 0; i < 100; i++){
+            addAndRemoveElements(numberOfThreads, 30000, 4, 1);
+            addAndRemoveElements(numberOfThreads, 30000, 4, 2);
+//        }
+		//addAndRemoveElements(numberOfThreads, 1000, 1, 1);
+		//addAndRemoveElements(numberOfThreads, 1000, 3, 4);
 	}
 
-	private void addAndRemoveElements(int threadPoolSize, int sleepTime, int numberInserts, int numberDeletes) throws InterruptedException {
+	private void addAndRemoveElements(int threadPoolSize, int totalListOperations, int numberInserts, int numberDeletes) throws InterruptedException {
 		final FDListFine<Double> list = createListOfSizeOne();
 		final AtomicInteger inserts = new AtomicInteger(1);
 		final AtomicInteger deletes = new AtomicInteger(0);
@@ -35,8 +38,7 @@ public class FDListFineThreadedTest {
 		Queue<Double> comparisonList = new ConcurrentLinkedQueue<Double>();
 		comparisonList.add(0.0);
 
-		addAndRemoveFromList(list, inserts, deletes, continueRun, threadPoolSize, numberInserts, numberDeletes, comparisonList);
-		sleepAndWakeThread(continueRun, sleepTime);
+		addAndRemoveFromList(list, inserts, deletes, continueRun, threadPoolSize, numberInserts, numberDeletes, comparisonList, totalListOperations);
 		printSummaryResults(inserts, deletes);
 		System.out.println(comparisonList.size() + " vs " + (inserts.get() - deletes.get()));
 		testResults(list, comparisonList.size()/*inserts.get() - deletes.get()*/);
@@ -50,7 +52,7 @@ public class FDListFineThreadedTest {
 		boolean isHead = false;
 		int count = 0;
 		while (!isHead) {
-			if (reader.curr().value().compareTo((Double) head.value()) == 0) {
+			if (reader.curr().isHead()) {
 				isHead = true;
 			} else if (reader.curr().isDeleted()) {
 				Assert.fail("We have a deleted node in the list ... ");
@@ -65,13 +67,6 @@ public class FDListFineThreadedTest {
 
 	}
 
-	private void sleepAndWakeThread(AtomicBoolean continueRun, int sleepTime) throws InterruptedException {
-		System.out.println("Sleep");
-		Thread.sleep(sleepTime);
-		System.out.println("Wake up");
-		continueRun.set(false);
-	}
-
 	private void printSummaryResults(AtomicInteger inserts, AtomicInteger deletes) {
 		System.out.println("Done");
 		System.out.println("Added " + inserts.get());
@@ -80,43 +75,64 @@ public class FDListFineThreadedTest {
 
 	private void addAndRemoveFromList(final FDListFine<Double> list, final AtomicInteger insertSize, final AtomicInteger removeSize,
 									  final AtomicBoolean continueRun, int threadPoolSize,
-									  final int numberInserts, final int numberDeletes, final Queue<Double> comparisonList) {
+									  final int numberInserts, final int numberDeletes, final Queue<Double> comparisonList, final int totalListOperations) {
 		// Create the ThreadPool
-		ExecutorService tpe = Executors.newFixedThreadPool(threadPoolSize);
+		final ExecutorService tpe = Executors.newFixedThreadPool(threadPoolSize);
 		for (int i = 0; i < threadPoolSize; i++) {
 			tpe.submit(new Runnable() {
 				@Override
 				public void run() {
 					FDListFine<Double>.Cursor reader = list.reader(list.head());
 					boolean add = true;
-					while (continueRun.get()) {
-						if (add) {
-							for (int i = 0; i < numberInserts; i++) {
-								reader.writer().insertAfter(getRandomDouble());
-								insertSize.incrementAndGet();
-								comparisonList.add(0.0);
-							}
-							add = false;
+					while (continueRun.get() && !Thread.currentThread().isInterrupted()) {
+                        try{
+                            if (add) {
+                                for (int i = 0; i < numberInserts; i++) {
+                                    reader.writer().insertAfter(getRandomDouble());
+                                    insertSize.incrementAndGet();
+                                    comparisonList.add(0.0);
 
-						} else {
-							try {
-								reader.next();
-								for (int i = 0; i < numberDeletes; i++) {
-									reader.writer().delete();
-									removeSize.incrementAndGet();
-									comparisonList.remove();
-								}
-								add = true;
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-						}
+                                }
+                                add = false;
+
+                            } else {
+                                reader.next();
+                                for (int i = 0; i < numberDeletes; i++) {
+                                    reader.writer().delete();
+                                    removeSize.incrementAndGet();
+                                    comparisonList.remove();
+                                }
+                                add = true;
+                            }
+                        }
+                        catch(Exception e){
+                            e.printStackTrace();
+                            System.out.println("Found a deleted node ... we have to reinitialize the reader.");
+                            reader = list.reader(list.head());
+                        }
 					}
 				}
 			});
 
 		}
-	}
+
+        System.out.println("Sleeping...");
+        try {
+            Thread.sleep(totalListOperations);
+        } catch (InterruptedException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        System.out.println("Shutting down now...");
+        tpe.shutdownNow();
+        try {
+            tpe.awaitTermination(30, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        System.out.println("Shut down pool.");
+
+    }
 
 	private FDListFine<Double> createListOfSizeOne() {
 		// Create the list
