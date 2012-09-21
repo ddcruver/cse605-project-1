@@ -153,30 +153,34 @@ public class FDListFine<T> {
 			synchronized (next) {
 				synchronized (next.get().prev) {
 					return next.get();
-			//	}
-			//}
 				}
 			}
 		}
 
 		private void setNext(Element next) {
-			//synchronized (this.next) {
-				this.next.set(next);
-			//}
+			synchronized (this.next) {
+				synchronized (next.getPrev().prev)
+				{
+					this.next.set(next);
+				}
+			}
 		}
 
 		private Element getPrev() {
-			//synchronized (prev.get().next) {
-			//	synchronized (prev) {
+			synchronized (prev.get().next) {
+				synchronized (prev) {
 					return prev.get();
-			//	}
-			//}
+				}
+			}
 		}
 
 		private void setPrev(Element prev) {
-			//synchronized (this.prev) {
-				this.prev.set(prev);
-			//}
+			synchronized (prev.getPrev().prev)
+			{
+				synchronized (this.prev) {
+					this.prev.set(prev);
+				}
+			}
 		}
 
 		public T value() {
