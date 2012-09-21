@@ -40,15 +40,11 @@ public class FDListFine<T> {
 
 
 		public void delete() {
-			//synchronized (currentElement) {
-            //    synchronized(cursor){
-                    if (currentElement.isDeleted()) {
-                        throw new IllegalStateException("The requested element was previously deleted.");
-                    }
-                    currentElement.delete();
-                    cursor.next();
-            //    }
-			//}
+            if (currentElement.isDeleted()) {
+                throw new IllegalStateException("The requested element was previously deleted.");
+            }
+            currentElement.delete();
+            cursor.next();
 		}
 
 		public boolean insertBefore(T val) {
@@ -157,28 +153,30 @@ public class FDListFine<T> {
 			synchronized (next) {
 				synchronized (next.get().prev) {
 					return next.get();
+			//	}
+			//}
 				}
 			}
 		}
 
 		private void setNext(Element next) {
-			synchronized (this.next) {
+			//synchronized (this.next) {
 				this.next.set(next);
-			}
+			//}
 		}
 
 		private Element getPrev() {
-			synchronized (prev.get().next) {
-				synchronized (prev) {
+			//synchronized (prev.get().next) {
+			//	synchronized (prev) {
 					return prev.get();
-				}
-			}
+			//	}
+			//}
 		}
 
 		private void setPrev(Element prev) {
-			synchronized (this.prev) {
+			//synchronized (this.prev) {
 				this.prev.set(prev);
-			}
+			//}
 		}
 
 		public T value() {
