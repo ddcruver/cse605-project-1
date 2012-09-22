@@ -42,6 +42,7 @@ public class FDListRWTest {
 		printSummaryResults(inserts, deletes);
 		System.out.println(comparisonList.size() + " vs " + (inserts.get() - deletes.get()));
 		testResults(list, comparisonList.size()/*inserts.get() - deletes.get()*/);
+		System.out.println("Done checking results.");
 	}
 
 	private void testResults(FDListRW<Double> list, int listSize) throws InterruptedException {
@@ -76,6 +77,7 @@ public class FDListRWTest {
 	private void addAndRemoveFromList(final FDListRW<Double> list, final AtomicInteger insertSize, final AtomicInteger removeSize,
 									  final AtomicBoolean continueRun, int threadPoolSize,
 									  final int numberInserts, final int numberDeletes, final Queue<Double> comparisonList, final int totalListOperations) {
+		final AtomicBoolean continueExecution = new AtomicBoolean(true);
 		// Create the ThreadPool
 		final ExecutorService tpe = Executors.newFixedThreadPool(threadPoolSize);
 		for (int i = 0; i < threadPoolSize; i++) {
@@ -89,7 +91,7 @@ public class FDListRWTest {
 						System.out.println("Interrupted..");
 					}
 					boolean add = true;
-					while (continueRun.get() && !Thread.currentThread().isInterrupted()) {
+					while (continueRun.get() && !Thread.currentThread().isInterrupted() && continueExecution.get()) {
 						try {
 							if (add) {
 								for (int i = 0; i < numberInserts; i++) {
@@ -130,10 +132,19 @@ public class FDListRWTest {
 		} catch (InterruptedException e) {
 			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
 		}
+		continueExecution.set(false);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+		}
+
+		//////////////////////////////////////////////
+
 		System.out.println("Shutting down now...");
 		tpe.shutdownNow();
 		try {
-			tpe.awaitTermination(30, TimeUnit.SECONDS);
+			tpe.awaitTermination(60, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
 		}

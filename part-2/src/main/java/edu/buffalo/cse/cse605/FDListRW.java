@@ -1,7 +1,6 @@
 package edu.buffalo.cse.cse605;
 
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Created with IntelliJ IDEA.
@@ -16,7 +15,8 @@ public class FDListRW<T> extends FDList<T> {
 	public FDListRW(T v) throws InterruptedException {
 		super(v);
 
-		readWriteLock = new ReentrantReadWriteLock();
+//		readWriteLock = new ReentrantReadWriteLock();
+		readWriteLock = new MyRWLock();
 	}
 
 	@Override

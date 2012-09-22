@@ -1,5 +1,6 @@
 package edu.buffalo.cse.cse605;
 
+/*
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,17 +8,22 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 
 
+*/
 /**
  * Created with IntelliJ IDEA.
  * User: jmlogan
  * Date: 9/3/12
  * Time: 5:58 PM
- */
-public class ReadWriteLock {
+ *//*
+
+public class ReadWriteLock implements java.util.concurrent.locks.ReadWriteLock {
 	private transient final Logger Log = LoggerFactory.getLogger(ReadWriteLock.class);
 
 	private AtomicInteger outstandingReadLocks = new AtomicInteger(0);
@@ -33,7 +39,10 @@ public class ReadWriteLock {
 		while (true) {
 			boolean b = !pendingLocks.isEmpty() && pendingLocks.peek().canContinue(true);
 			if (b) {
-				pendingLocks.poll().resume();
+				Lock lock = pendingLocks.poll();
+				synchronized (lock) {
+					lock.resume();
+				}
 			} else {
 				break;
 			}
@@ -64,6 +73,16 @@ public class ReadWriteLock {
 
 		assert !executingReadLocks.containsValue(Thread.currentThread());
 		return lock;
+	}
+
+	@Override
+	public java.util.concurrent.locks.Lock readLock() {
+		return getReadLock();
+	}
+
+	@Override
+	public java.util.concurrent.locks.Lock writeLock() {
+		return getWriteLock();
 	}
 
 	public class ReadLock extends Lock {
@@ -160,14 +179,17 @@ public class ReadWriteLock {
 		}
 	}
 
-	public abstract class Lock {
+	public abstract class Lock implements java.util.concurrent.locks.Lock {
 		protected AtomicBoolean allocatedResources = new AtomicBoolean(false);
+		protected AtomicBoolean isInProcessOfSleeping = new AtomicBoolean(false);
 
-		/**
-		 * Acquires the requested lock, blocking if necessary.
-		 *
-		 * @throws InterruptedException If thread was interrupted
-		 */
+		*/
+/**
+ * Acquires the requested lock, blocking if necessary.
+ *
+ * @throws InterruptedException If thread was interrupted
+ *//*
+
 		public void acquire() throws InterruptedException {
 			synchronized (this) {
 				while (true) {
@@ -193,18 +215,20 @@ public class ReadWriteLock {
 
 		}
 
-		/**
-		 * This is required because we need to allocate resources for a lock that has blocked BEFORE waking it, because you cannot guarantee that waking a thread, and it claiming its resources is atomic. Otherwise our notion of fairness could be violated by the following sequence: <br />
-		 * <br />
-		 * (1) Reader Lock A acquired<br />
-		 * (2) Writer Lock B attempted -- is not available due to reader outstanding. blocks.<br />
-		 * (3) Reader Lock A returned<br />
-		 * (4) Writer Lock B is awoken<br />
-		 * (5) Writer Lock C is acquired (Lock B did not claim it's resources yet)<br />
-		 * (6) Writer Lock B is blocked -- our fairness is broken<br />
-		 * <br />
-		 * This is solved by allocating the lock's resources before waking it (within the critical section of code). Therefore, there are two paths to acquire the lock resources, and it should only be done once.
-		 */
+		*/
+/**
+ * This is required because we need to allocate resources for a lock that has blocked BEFORE waking it, because you cannot guarantee that waking a thread, and it claiming its resources is atomic. Otherwise our notion of fairness could be violated by the following sequence: <br />
+ * <br />
+ * (1) Reader Lock A acquired<br />
+ * (2) Writer Lock B attempted -- is not available due to reader outstanding. blocks.<br />
+ * (3) Reader Lock A returned<br />
+ * (4) Writer Lock B is awoken<br />
+ * (5) Writer Lock C is acquired (Lock B did not claim it's resources yet)<br />
+ * (6) Writer Lock B is blocked -- our fairness is broken<br />
+ * <br />
+ * This is solved by allocating the lock's resources before waking it (within the critical section of code). Therefore, there are two paths to acquire the lock resources, and it should only be done once.
+ *//*
+
 		private void assureResourcesAcquired() {
 			// if the resources are allocated already (ie. it didn't block), continue, else allocate first
 			if (allocatedResources.compareAndSet(false, true)) {
@@ -213,10 +237,15 @@ public class ReadWriteLock {
 			}
 		}
 
-		/**
-		 * Releases control of this lock.
-		 */
-		public void release() {
+		*/
+
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+/**
+ * Releases control of this lock.
+ *//*
+
+		public synchronized void release() {
 			synchronized (ReadWriteLock.this) {
 				Log.trace("Releasing lock {} by thread {}.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
 				releaseHeldResources();
@@ -238,6 +267,7 @@ public class ReadWriteLock {
 		protected abstract void releaseResources();
 
 		protected void sleep() throws InterruptedException {
+
 			Log.debug("Lock {} not available for thread {}, sleeping. (#" + pendingLocks.size() + ")", this.getClass().getCanonicalName(), Thread.currentThread().getName());
 
 			this.wait();
@@ -260,5 +290,48 @@ public class ReadWriteLock {
 		}
 
 		protected abstract boolean canContinue(boolean topOfQueue);
+
+		@Override
+		public synchronized void lock() {
+			try {
+				acquire();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+			}
+		}
+
+		@Override
+		public void lockInterruptibly() throws InterruptedException {
+			acquire();
+		}
+
+		@Override
+		public boolean tryLock() {
+			throw new UnsupportedOperationException("Not implemented");
+		}
+
+		@Override
+		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+			throw new UnsupportedOperationException("Not implemented");
+		}
+
+
+		@Override
+		public void unlock() {
+			release();
+		}
+
+		@Override
+		public Condition newCondition() {
+			throw new UnsupportedOperationException("Not implemented");
+		}
+	}
+}
+*/
+
+public class MyRWLock extends ReentrantReadWriteLock {
+	public MyRWLock() {
+		super(false);
 	}
 }
