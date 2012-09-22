@@ -38,7 +38,7 @@ public class FDList<T> {
 	}
 
 	public class Writer {
-		private final Element currentElement;
+		protected final Element currentElement;
 		private final Cursor cursor;
 
 		protected Writer(Cursor cursor) throws InterruptedException {
@@ -49,18 +49,18 @@ public class FDList<T> {
 
 		public boolean delete() throws InterruptedException {
 			currentElement.delete();
-			cursor.next();
+			cursor.currentElement = cursor.currentElement.next;
 			return true;
 		}
 
 		public boolean insertBefore(T val) throws InterruptedException {
-			Element newElement = createElement(val, currentElement.getPrev(), currentElement);
+			Element newElement = createElement(val, currentElement.prev, currentElement);
 			newElement.adjustNeighbors();
 			return true;
 		}
 
 		public boolean insertAfter(T val) throws InterruptedException {
-			Element newElement = createElement(val, currentElement, currentElement.getNext());
+			Element newElement = createElement(val, currentElement, currentElement.next);
 			newElement.adjustNeighbors();
 			return true;
 		}
@@ -78,11 +78,11 @@ public class FDList<T> {
 		}
 
 		public void next() throws InterruptedException {
-			currentElement = curr().getNext();
+			currentElement = curr().next;
 		}
 
 		public void prev() throws InterruptedException {
-			currentElement = curr().getPrev();
+			currentElement = curr().prev;
 		}
 
 		public Writer writer() throws InterruptedException {
@@ -93,6 +93,8 @@ public class FDList<T> {
 	public class Element {
 		private Element prev;
 		private Element next;
+
+		private volatile boolean isDeleted = false;
 
 		private T value;
 
@@ -136,7 +138,12 @@ public class FDList<T> {
 		private void delete() {
 			prev.setNext(next);
 			next.setPrev(prev);
+
+			isDeleted = true;
+		}
+
+		public boolean isDeleted() {
+			return isDeleted;
 		}
 	}
 }
-

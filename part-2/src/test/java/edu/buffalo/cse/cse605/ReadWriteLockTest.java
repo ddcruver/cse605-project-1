@@ -26,7 +26,17 @@ public class ReadWriteLockTest {
 		TestSystem ts = new TestSystem(new ReadWriteLock());
 
 		Future<Tuple<Integer, Integer>> firstRead = ts.submitReadTask();
+		try {
+			Thread.sleep(10);
+		} catch (InterruptedException e) {
+
+		}
 		Future<Tuple<Integer, Integer>> firstWrite = ts.submitWriteTask();
+		try {
+			Thread.sleep(10);
+		} catch (InterruptedException e) {
+
+		}
 		Future<Tuple<Integer, Integer>> secondRead = ts.submitReadTask();
 
 		Assert.assertEquals("Incorrect ordering of results", firstRead.get(), new Tuple<Integer, Integer>(1, 0));
@@ -103,7 +113,6 @@ public class ReadWriteLockTest {
 			}
 
 			Tuple<Integer, Integer> result = new Tuple<Integer, Integer>(incrementRead ? numberOfReadersCompleted.incrementAndGet() : numberOfReadersCompleted.get(), !incrementRead ? numberOfWritersCompleted.incrementAndGet() : numberOfWritersCompleted.get());
-			System.out.println("Releasing (" + numberOfReadersCompleted.get() + "," + numberOfWritersCompleted + ")");
 			readLock.release();
 			return result;
 		}

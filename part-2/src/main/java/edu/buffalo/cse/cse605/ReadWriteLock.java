@@ -26,13 +26,14 @@ public class ReadWriteLock {
 
 	private Queue<Lock> pendingLocks = new LinkedList<Lock>();
 	private final Map<Thread, Lock> executingLocks = new ConcurrentHashMap<Thread, Lock>();
+	private final Map<Thread, Lock> executingReadLocks = new ConcurrentHashMap<Thread, Lock>();
+
 
 	private synchronized void flushQueue() {
 		while (true) {
 			boolean b = !pendingLocks.isEmpty() && pendingLocks.peek().canContinue(true);
 			if (b) {
 				pendingLocks.poll().resume();
-
 			} else {
 				break;
 			}
@@ -42,7 +43,11 @@ public class ReadWriteLock {
 	public Lock getReadLock() {
 		Lock lock = executingLocks.get(Thread.currentThread());
 		if (lock == null) {
-			lock = new ReadLock();
+			lock = executingReadLocks.get(Thread.currentThread());
+
+			if (lock == null) {
+				lock = new ReadLock();
+			}
 		}
 		return lock;
 	}
@@ -52,10 +57,17 @@ public class ReadWriteLock {
 		if (lock == null) {
 			lock = new WriteLock();
 		}
+
+		if (executingReadLocks.get(Thread.currentThread()) != null) {
+			throw new IllegalStateException("Already has read lock!");
+		}
+
+		assert !executingReadLocks.containsValue(Thread.currentThread());
 		return lock;
 	}
 
 	public class ReadLock extends Lock {
+		private volatile int numberOfLocksAcquired = 0;
 
 		@Override
 		protected void releaseResources() {
@@ -63,8 +75,24 @@ public class ReadWriteLock {
 		}
 
 		@Override
+		public void acquire() throws InterruptedException {
+			if (++numberOfLocksAcquired == 1) {
+				super.acquire();
+				executingReadLocks.put(Thread.currentThread(), this);
+			}
+		}
+
+		@Override
+		public void release() {
+			if (--numberOfLocksAcquired == 0) {
+				executingReadLocks.remove(Thread.currentThread());
+				super.release();
+			}
+		}
+
+		@Override
 		protected void acquireResources() {
-			Log.debug("Allocated resources for reading for thread {}", Thread.currentThread().getName());
+			Log.trace("Allocated resources for reading for thread {}", Thread.currentThread().getName());
 			outstandingReadLocks.incrementAndGet();
 		}
 
@@ -75,7 +103,7 @@ public class ReadWriteLock {
 	}
 
 	public class WriteLock extends Lock {
-		private int numberOfLocksAcquired = 0;
+		private volatile int numberOfLocksAcquired = 0;
 
 		@Override
 		protected void releaseResources() {
@@ -86,7 +114,6 @@ public class ReadWriteLock {
 				throw new IllegalStateException("Trying to release write lock that doesn't exist!");
 			}
 
-			Lock remove = executingLocks.remove(Thread.currentThread());
 //			assert remove == this;
 
 		}
@@ -108,7 +135,7 @@ public class ReadWriteLock {
 			if (++numberOfLocksAcquired == 1) {
 				numberOfWritersWaiting.incrementAndGet();
 				super.acquire();
-				Log.debug("Allocated resources for writing for thread {}", Thread.currentThread().getName());
+				Log.trace("Allocated resources for writing for thread {}", Thread.currentThread().getName());
 			} else {
 				Log.debug("Thread already acquired lock, not giving a new one.");
 			}
@@ -123,6 +150,10 @@ public class ReadWriteLock {
 		public void release() {
 			if (--numberOfLocksAcquired == 0) {
 				super.release();
+
+				Lock lock = executingLocks.remove(Thread.currentThread());
+				Log.debug("Releasing write lock.");
+				assert lock != null;
 			} else {
 				Log.debug("Still have outstanding locks, not releasing.");
 			}
@@ -158,7 +189,7 @@ public class ReadWriteLock {
 
 
 			}
-			Log.debug("Lock {} acquired by thread {}.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
+			Log.trace("Lock {} acquired by thread {}.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
 
 		}
 
@@ -187,7 +218,7 @@ public class ReadWriteLock {
 		 */
 		public void release() {
 			synchronized (ReadWriteLock.this) {
-				Log.debug("Releasing lock {} by thread {}.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
+				Log.trace("Releasing lock {} by thread {}.", this.getClass().getCanonicalName(), Thread.currentThread().getName());
 				releaseHeldResources();
 				flushQueue();
 			}
@@ -210,6 +241,8 @@ public class ReadWriteLock {
 			Log.debug("Lock {} not available for thread {}, sleeping. (#" + pendingLocks.size() + ")", this.getClass().getCanonicalName(), Thread.currentThread().getName());
 
 			this.wait();
+
+			Log.debug("Thread {} awoken.", Thread.currentThread().getName());
 		}
 
 		private void resume() {
