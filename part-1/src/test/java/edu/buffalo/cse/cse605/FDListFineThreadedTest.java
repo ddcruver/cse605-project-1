@@ -2,6 +2,8 @@ package edu.buffalo.cse.cse605;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -18,16 +20,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Time: 4:50 PM
  */
 public class FDListFineThreadedTest {
+
+    private Logger log = LoggerFactory.getLogger(FDListFineThreadedTest.class);
 	private final int numberOfThreads = 10;
 
 	@Test
 	public void threadAccessToListInsertAndRemoveTest() throws InterruptedException {
-//        for(int i = 0; i < 100; i++){
-            addAndRemoveElements(numberOfThreads, 30000, 4, 1);
-            addAndRemoveElements(numberOfThreads, 30000, 4, 2);
-//        }
+        addAndRemoveElements(numberOfThreads, 30000, 4, 1);
+        addAndRemoveElements(numberOfThreads, 30000, 4, 2);
 		addAndRemoveElements(numberOfThreads, 30000, 1, 1);
-		//addAndRemoveElements(numberOfThreads, 30000, 3, 4);
+        addAndRemoveElements(numberOfThreads, 30000, 3, 4);
 	}
 
 	private void addAndRemoveElements(int threadPoolSize, int totalListOperations, int numberInserts, int numberDeletes) throws InterruptedException {
@@ -40,7 +42,7 @@ public class FDListFineThreadedTest {
 
 		addAndRemoveFromList(list, inserts, deletes, continueRun, threadPoolSize, numberInserts, numberDeletes, comparisonList, totalListOperations);
 		printSummaryResults(inserts, deletes);
-		System.out.println(comparisonList.size() + " vs " + (inserts.get() - deletes.get()));
+        log.debug(comparisonList.size() + " vs " + (inserts.get() - deletes.get()));
 		testResults(list, comparisonList.size()/*inserts.get() - deletes.get()*/);
 	}
 
@@ -59,7 +61,7 @@ public class FDListFineThreadedTest {
 			} else {
 				count++;
 				reader.next();
-				//System.out.println(count + " " + reader.curr().value().doubleValue());
+				//log.debug(count + " " + reader.curr().value().doubleValue());
 			}
 		}
 
@@ -114,7 +116,7 @@ public class FDListFineThreadedTest {
                         }
                         catch(Exception e){
                             e.printStackTrace();
-                            System.out.println("Found a deleted node ... we have to reinitialize the reader.");
+                            log.debug("Found a deleted node ... we have to reinitialize the reader.");
                             reader = list.reader(list.head());
                         }
 					}
@@ -123,7 +125,7 @@ public class FDListFineThreadedTest {
 
 		}
 
-        System.out.println("Sleeping...");
+        log.debug("Sleeping...");
         try {
             Thread.sleep(totalListOperations);
         } catch (InterruptedException e) {
@@ -132,12 +134,16 @@ public class FDListFineThreadedTest {
         System.out.println("Shutting down now...");
         tpe.shutdownNow();
         try {
-            tpe.awaitTermination(30, TimeUnit.SECONDS);
+            boolean terminated = false;
+            while(! terminated){
+                terminated = tpe.awaitTermination(30, TimeUnit.SECONDS);
+                log.debug("Is TheadPoolExecutor done ... {}", terminated);
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
-        System.out.println("Shut down pool.");
+        log.debug("Shut down pool.");
 
     }
 
