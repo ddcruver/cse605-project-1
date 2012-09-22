@@ -19,6 +19,22 @@
 
     <dependencies>
         <dependency>
+            <groupId>cse605-project-1</groupId>
+            <artifactId>part-0</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>cse605-project-1</groupId>
+            <artifactId>part-1</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>cse605-project-1</groupId>
+            <artifactId>part-2</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.10</version>
