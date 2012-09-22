@@ -69,6 +69,9 @@ public class FDListFine<T> {
             synchronized (prev){
                 synchronized (currentElement){
                     synchronized (currentElement.getNext()){
+                        if(currentElement.isDeleted()){
+                            throw new IllegalStateException("Tried to insertBefore() on a deleted node.");
+                        }
                         Element newElement = new Element(val, currentElement.getPrev(), currentElement);
                         newElement.adjustNeighbors();
                     }
@@ -85,6 +88,9 @@ public class FDListFine<T> {
             synchronized (prev){
                 synchronized (currentElement){
                     synchronized (currentElement.getNext()){
+                        if(currentElement.isDeleted()){
+                            throw new IllegalStateException("Tried to insertAfter() on a deleted node.");
+                        }
                         Element newElement = new Element(val, currentElement, currentElement.getNext());
                         newElement.adjustNeighbors();
                     }

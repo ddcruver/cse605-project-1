@@ -26,8 +26,8 @@ public class FDListFineThreadedTest {
             addAndRemoveElements(numberOfThreads, 30000, 4, 1);
             addAndRemoveElements(numberOfThreads, 30000, 4, 2);
 //        }
-		//addAndRemoveElements(numberOfThreads, 1000, 1, 1);
-		//addAndRemoveElements(numberOfThreads, 1000, 3, 4);
+		addAndRemoveElements(numberOfThreads, 30000, 1, 1);
+		//addAndRemoveElements(numberOfThreads, 30000, 3, 4);
 	}
 
 	private void addAndRemoveElements(int threadPoolSize, int totalListOperations, int numberInserts, int numberDeletes) throws InterruptedException {
@@ -88,7 +88,12 @@ public class FDListFineThreadedTest {
                         try{
                             if (add) {
                                 for (int i = 0; i < numberInserts; i++) {
-                                    reader.writer().insertAfter(getRandomDouble());
+                                    if(i%2==0){
+                                        reader.writer().insertAfter(getRandomDouble());
+                                    }
+                                    else{
+                                        reader.writer().insertBefore(getRandomDouble());
+                                    }
                                     insertSize.incrementAndGet();
                                     comparisonList.add(0.0);
 
@@ -100,7 +105,9 @@ public class FDListFineThreadedTest {
                                 for (int i = 0; i < numberDeletes; i++) {
                                     reader.writer().delete();
                                     removeSize.incrementAndGet();
-                                    comparisonList.remove();
+                                    if(comparisonList.size() > 0){
+                                        comparisonList.remove();
+                                    }
                                 }
                                 add = true;
                             }
