@@ -2,6 +2,7 @@ package edu.buffalo.cse.cse605;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,13 +14,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public interface Benchmark
 {
 	public void initRun();
-	public void run();
+	public void initThread(int threadNumber);
+	public void run(int threadNumber);
 
 	public boolean getRunning();
 	public void setRunning(boolean value);
 
-	public AtomicInteger getReadAtomicInteger();
-	public AtomicInteger getWriteAtomicInteger();
-	public AtomicInteger getDeleteAtomicInteger();
-
+	public AtomicLong getReadAtomicCount();
+	public AtomicLong getWriteAtomicCount();
+	public AtomicLong getDeleteAtomicCount();
 }

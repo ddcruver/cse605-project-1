@@ -1,29 +1,48 @@
 package edu.buffalo.cse.cse605;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created with IntelliJ IDEA.
  * User: ddcruver
  * Date: 9/22/12
  * Time: 11:43 AM
- * To change this template use File | Settings | File Templates.
  */
 public class BenchmarkDriver
 {
-	public void runIterations(final Benchmark benchmark, int threadPoolSize, int iterations) throws InterruptedException
+	private static final Logger LOG = LoggerFactory.getLogger(BenchmarkDriver.class);
+
+	public List<BenchmarkResult> runIterations(final Benchmark benchmark, int threadPoolSize, int iterations) throws InterruptedException
 	{
+		List<BenchmarkResult> results = new ArrayList<BenchmarkResult>();
 		for(int i = 0; i < iterations; i++)
 		{
-			runIteration(benchmark, threadPoolSize);
+			results.add(runIteration(benchmark, threadPoolSize));
 		}
+
+		StringBuilder resultsStringBuiler = new StringBuilder();
+		for(BenchmarkResult result : results)
+		{
+			resultsStringBuiler.append(result.toCsv());
+			resultsStringBuiler.append("\n");
+		}
+
+		LOG.info("Results:\n{}", resultsStringBuiler);
+
+		return results;
 	}
 
-	public void runIteration(final Benchmark benchmark, final int threadPoolSize) throws InterruptedException
+	public BenchmarkResult runIteration(final Benchmark benchmark, final int threadPoolSize) throws InterruptedException
 	{
 		// Setup Thread Pool
 		ExecutorService threadPool = Executors.newFixedThreadPool(threadPoolSize);
@@ -36,54 +55,69 @@ public class BenchmarkDriver
 		benchmark.initRun();
 
 		final Semaphore running = new Semaphore(0);
+		final Semaphore threadsReady = new Semaphore(0);
+		final Semaphore canBegin = new Semaphore(0);
+
 	    for(int i = 0; i < threadPoolSize; i++)
 	    {
+		    final int threadNumber = i;
 			executor.submit(new Runnable()
 			{
 				@Override
 				public void run()
 				{
 
-				   benchmark.run();
-				   running.release();
+				   benchmark.initThread(threadNumber);
+				   threadsReady.release();
+				   try
+				   {
+				       canBegin.acquire();
+					   benchmark.run(threadNumber);
+				   } catch(InterruptedException ex)
+				   {
+					   System.err.println("Was interrupted while waiting for beginning of run.");
+				   } finally {
+					   running.release();
+				   }
+
+
 				}
 			});
 	    }
 
-		System.out.println("Before Set Running");
+		LOG.info("Waiting for {} Threads to Initialize", Long.valueOf(threadPoolSize));
+		threadsReady.acquire(threadPoolSize);
+		LOG.info("Starting Threads");
+		canBegin.release(threadPoolSize);
+
+		int secondsToRun = 5;
+
+		LOG.info("Letting threads run for {} seconds", secondsToRun);
+		Thread.sleep(5000);
+		LOG.debug("Set Run State to False");
 		benchmark.setRunning(false);
-		System.out.println("Set Running False");
 		running.acquire(threadPoolSize);
 
-		System.out.println("After Running");
+		LOG.info("All Running Threads were Terminated");
 
+		LOG.info("Ending Test");
 
-
-		//long afterCompletedCount = executor.getCompletedTaskCount();
-		//while(afterCompletedCount < currentActiveCount + threadPoolSize);
-		//{
-		//	System.out.println("Waiting for test to end");
-		//	afterCompletedCount = executor.getCompletedTaskCount();
-		//}
-
-		System.out.println("Ending Test");
-
-
+		BenchmarkResult result = new BenchmarkResult(benchmark);
 
 		shutdownThreadPoolExecutor(executor);
+
+		return result;
 	}
 
 	private static long warmUpThreadPool(ThreadPoolExecutor executor, final int threadPerCoreThreads, final int warmUpTimeSec)
 	{
-		final AtomicInteger warmUpCounterThreads = new AtomicInteger(0);
-		final AtomicInteger warmUpCounterSpins = new AtomicInteger(0);
+		final AtomicLong warmUpCounterThreads = new AtomicLong(0);
+		final AtomicLong warmUpCounterSpins = new AtomicLong(0);
 
-		final long warmUpSpins = 1000 * 1000 * 10;
 		final long warmUpTime = (long)Math.pow(10, 9) * warmUpTimeSec;
-
 		final long warmUpThreads = executor.getPoolSize() * threadPerCoreThreads;
 
-		System.out.println("Warm Up Time: " + warmUpTime);
+		LOG.debug("Warm Up Time: {}", warmUpTime);
 
 		for(int i = 0; i < warmUpThreads; i++)
 		{
@@ -112,9 +146,7 @@ public class BenchmarkDriver
 			completedTasks = executor.getCompletedTaskCount();
 		}
 
-		System.out.println("Warm Up Counter Threads: " + warmUpCounterThreads);
-		System.out.println("Warm Up Counter Spins: " + warmUpCounterSpins);
-		System.out.println("Warmed Up");
+		LOG.debug("Warm Up Done; counterThreads={} spins={}", warmUpCounterThreads, warmUpCounterSpins);
 
 		return completedTasks;
 	}
@@ -128,7 +160,7 @@ public class BenchmarkDriver
 			Thread.sleep(1000);
 		} catch (InterruptedException e)
 		{
-			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+			LOG.error("Thread was interrupted when trying to shutdown thread pool.", e);
 		}
 		executor.shutdownNow();
 	}
