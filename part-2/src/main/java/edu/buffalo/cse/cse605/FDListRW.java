@@ -1,63 +1,66 @@
 package edu.buffalo.cse.cse605;
 
+import edu.buffalo.cse.cse605.rw.SimpleRWLock;
+
+import java.util.concurrent.locks.Lock;
+
 /**
  * Created with IntelliJ IDEA.
  * User: jmlogan
  * Date: 9/9/12
  * Time: 2:55 PM
  */
+
 public class FDListRW<T> extends FDList<T> {
-	private final ReadWriteLock readWriteLock = new ReadWriteLock();
+	private final java.util.concurrent.locks.ReadWriteLock readWriteLock;
 
 	public FDListRW(T v) throws InterruptedException {
 		super(v);
+
+//		readWriteLock = new ReentrantReadWriteLock();
+//		readWriteLock = new MyRWLock();
+		readWriteLock = new SimpleRWLock();
 	}
 
 	@Override
 	protected Writer createWriter(Cursor from) throws InterruptedException {
-		ReadWriteLock.Lock lock = readWriteLock.getReadLock();
-		lock.acquire();
+		Lock lock = readWriteLock.readLock();
+		lock.lock();
 
 		try {
 			return new WriterRW(from);
 		} finally {
-			lock.release();
+			lock.unlock();
 		}
 	}
 
 	@Override
 	protected Cursor createCursor(Element from) throws InterruptedException {
-		ReadWriteLock.Lock lock = readWriteLock.getReadLock();
-		lock.acquire();
+		Lock lock = readWriteLock.readLock();
+		lock.lock();
 
 		try {
 			return new CursorRW(from);
 		} finally {
-			lock.release();
+			lock.unlock();
 		}
 	}
 
 	@Override
-	protected Element createElement(T val) throws InterruptedException {
-		ReadWriteLock.Lock lock = readWriteLock.getReadLock();
-		lock.acquire();
-
-		try {
-			return new ElementRW(val);
-		} finally {
-			lock.release();
-		}
+	protected Element createElement(T val) throws InterruptedException { // this is only used in the constructor, no locks req
+		return new ElementRW(val);
 	}
 
 	@Override
 	protected Element createElement(T val, Element prev, Element next) throws InterruptedException {
-		ReadWriteLock.Lock lock = readWriteLock.getReadLock();
-		lock.acquire();
+		Lock lock = readWriteLock.readLock();
+
+		lock.lock();
 
 		try {
 			return new ElementRW(val, prev, next);
 		} finally {
-			lock.release();
+			lock.unlock();
 		}
 	}
 
@@ -65,37 +68,50 @@ public class FDListRW<T> extends FDList<T> {
 
 		@Override
 		public boolean delete() throws InterruptedException {
-			ReadWriteLock.Lock lock = readWriteLock.getWriteLock();
-			lock.acquire();
+			Lock lock = readWriteLock.writeLock();
+
+			lock.lock();
 
 			try {
+				if (currentElement.isDeleted()) {
+					throw new IllegalStateException("Trying to use a deleted element!");
+				}
+
 				return super.delete();
 			} finally {
-				lock.release();
+				lock.unlock();
 			}
 		}
 
 		@Override
 		public boolean insertBefore(T val) throws InterruptedException {
-			ReadWriteLock.Lock lock = readWriteLock.getWriteLock();
-			lock.acquire();
+			Lock lock = readWriteLock.writeLock();
+
+			lock.lock();
 
 			try {
+				if (currentElement.isDeleted()) {
+					throw new IllegalStateException("Trying to use a deleted element!");
+				}
 				return super.insertBefore(val);
 			} finally {
-				lock.release();
+				lock.unlock();
 			}
 		}
 
 		@Override
 		public boolean insertAfter(T val) throws InterruptedException {
-			ReadWriteLock.Lock lock = readWriteLock.getWriteLock();
-			lock.acquire();
+			Lock lock = readWriteLock.writeLock();
+
+			lock.lock();
 
 			try {
+				if (currentElement.isDeleted()) {
+					throw new IllegalStateException("Trying to use a deleted element!");
+				}
 				return super.insertAfter(val);
 			} finally {
-				lock.release();
+				lock.unlock();
 			}
 		}
 
@@ -116,37 +132,49 @@ public class FDListRW<T> extends FDList<T> {
 
 		@Override
 		protected Element getNext() throws InterruptedException {
-			ReadWriteLock.Lock lock = readWriteLock.getReadLock();
-			lock.acquire();
+			Lock lock = readWriteLock.readLock();
+
+			lock.lock();
 
 			try {
+				if (isDeleted()) {
+					throw new IllegalStateException("Trying to use a deleted element!");
+				}
 				return super.getNext();
 			} finally {
-				lock.release();
+				lock.unlock();
 			}
 		}
 
 		@Override
 		protected Element getPrev() throws InterruptedException {
-			ReadWriteLock.Lock lock = readWriteLock.getReadLock();
-			lock.acquire();
+			Lock lock = readWriteLock.readLock();
+
+			lock.lock();
 
 			try {
+				if (isDeleted()) {
+					throw new IllegalStateException("Trying to use a deleted element!");
+				}
 				return super.getPrev();
 			} finally {
-				lock.release();
+				lock.unlock();
 			}
 		}
 
 		@Override
 		public T value() throws InterruptedException {
-			ReadWriteLock.Lock lock = readWriteLock.getReadLock();
-			lock.acquire();
+			Lock lock = readWriteLock.readLock();
+
+			lock.lock();
 
 			try {
+				if (isDeleted()) {
+					throw new IllegalStateException("Trying to use a deleted element!");
+				}
 				return super.value();
 			} finally {
-				lock.release();
+				lock.unlock();
 			}
 		}
 	}
@@ -159,49 +187,48 @@ public class FDListRW<T> extends FDList<T> {
 
 		@Override
 		public Element curr() throws InterruptedException {
-			ReadWriteLock.Lock lock = readWriteLock.getReadLock();
-			lock.acquire();
+			Lock lock = readWriteLock.readLock();
+			lock.lock();
 
 			try {
+				if (currentElement.isDeleted()) {
+					throw new IllegalStateException("Trying to use a deleted element!");
+				}
 				return super.curr();
 			} finally {
-				lock.release();
+				lock.unlock();
 			}
 		}
 
 		@Override
 		public void next() throws InterruptedException {
-			ReadWriteLock.Lock lock = readWriteLock.getReadLock();
-			lock.acquire();
+			Lock lock = readWriteLock.readLock();
+
+			lock.lock();
 
 			try {
+				if (currentElement.isDeleted()) {
+					throw new IllegalStateException("Trying to use a deleted element!");
+				}
 				super.next();
 			} finally {
-				lock.release();
+				lock.unlock();
 			}
 		}
 
 		@Override
 		public void prev() throws InterruptedException {
-			ReadWriteLock.Lock lock = readWriteLock.getReadLock();
-			lock.acquire();
+			Lock lock = readWriteLock.readLock();
+
+			lock.lock();
 
 			try {
+				if (currentElement.isDeleted()) {
+					throw new IllegalStateException("Trying to use a deleted element!");
+				}
 				super.prev();
 			} finally {
-				lock.release();
-			}
-		}
-
-		@Override
-		public Writer writer() throws InterruptedException {
-			ReadWriteLock.Lock lock = readWriteLock.getReadLock();
-			lock.acquire();
-
-			try {
-				return super.writer();
-			} finally {
-				lock.release();
+				lock.unlock();
 			}
 		}
 	}

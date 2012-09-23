@@ -33,6 +33,7 @@
         <module>part-1</module>
         <module>part-2</module>
         <module>common</module>
+        <module>benchmarks</module>
     </modules>
     <dependencies>
         <dependency>
