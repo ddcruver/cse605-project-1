@@ -53,6 +53,9 @@ public class BenchmarkDriver
 
 		benchmark.initRun();
 
+        // Just in case it will listen
+        System.gc();
+
 		final Semaphore running = new Semaphore(0);
 		final Semaphore threadsReady = new Semaphore(0);
 		final Semaphore canBegin = new Semaphore(0);
@@ -119,6 +122,8 @@ public class BenchmarkDriver
 		LOG.debug("Cleaning up Test");
 		shutdownThreadPoolExecutor(executor);
 
+        // Just in case it will listen
+        System.gc();
 		return result;
 	}
 
