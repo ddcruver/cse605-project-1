@@ -21,7 +21,9 @@ public class BenchmarkRunner
 
 	public static void main(String args[]) throws InterruptedException, IOException
 	{
-		if(args.length < 4)
+		//startSleeperThread();
+
+		if (args.length < 4)
 		{
 			LOG.error("You did not provide the valid amount of arguments: <threads> <iterations> <secondsToRunEachIteration> <initialListSize>");
 			System.exit(-1);
@@ -57,7 +59,7 @@ public class BenchmarkRunner
 		writeResults("FDListFine 80% Reads 10% Writes 10% Deletes", fine801010Results, rawOut, normalizedOut);
 
 		Benchmark rw801010 = new BenchmarkFDListRWRead80Write10Delete10(threads, initialListSize);
-		List<BenchmarkResult> rw801010Results = driver.runIterations(fine801010, secondsToRun, threads, iterations);
+		List<BenchmarkResult> rw801010Results = driver.runIterations(rw801010, secondsToRun, threads, iterations);
 		writeResults("FDListRW 80% Reads 10% Writes 10% Deletes", rw801010Results, rawOut, normalizedOut);
 
 		Benchmark coarse502525 = new BenchmarkFDCoarseRead50Write25Delete25(threads, initialListSize);
@@ -77,6 +79,27 @@ public class BenchmarkRunner
 
 	}
 
+	private static void startSleeperThread()
+	{
+		Runnable runner = new Runnable()
+		{
+			public void run()
+			{
+    		try
+				{
+    				Thread.sleep(Long.MAX_VALUE);
+    			} catch (InterruptedException e)
+				{
+				    //Ignore
+				}
+			}
+		};
+
+		Thread t = new Thread(runner, "Sleeper");
+		t.setDaemon(true);
+		t.start();
+	}
+
 	private static String getBaseFileName(int threads, int iterations, int secondsToRun, long initialListSize)
 	{
 		return "benchmark" + threads + "t-" + iterations + "i-" + secondsToRun + "s-" + initialListSize + "ils";
@@ -88,20 +111,18 @@ public class BenchmarkRunner
 
 		// Delete existing report file if it already exists
 		File file = new File(filename);
-		if(file.exists())
+		if (file.exists())
 			file.delete();
 
 		FileWriter rawFileWriter = new FileWriter(filename);
-		BufferedWriter rawOut = new BufferedWriter(rawFileWriter);
-		return rawOut;
+		return new BufferedWriter(rawFileWriter);
 	}
 
 	private static BufferedWriter getResultWriter(int threads, int iterations, int secondsToRun, long initialListSize) throws IOException
 	{
 		String filename = getBaseFileName(threads, iterations, secondsToRun, initialListSize) + ".out";
 		FileWriter rawFileWriter = new FileWriter(filename);
-		BufferedWriter out = new BufferedWriter(rawFileWriter);
-		return out;
+		return new BufferedWriter(rawFileWriter);
 	}
 
 	private static void writeResults(String testTitle, List<BenchmarkResult> benchmarkResults, BufferedWriter rawOut, BufferedWriter normalizedOut) throws IOException
@@ -113,7 +134,7 @@ public class BenchmarkRunner
 	private static void writeRawResults(String testTitle, List<BenchmarkResult> benchmarkResults, BufferedWriter out) throws IOException
 	{
 		int iteration = 1;
-		for(BenchmarkResult result : benchmarkResults)
+		for (BenchmarkResult result : benchmarkResults)
 		{
 			out.write(testTitle);
 			out.write(",");
@@ -133,16 +154,16 @@ public class BenchmarkRunner
 		out.write(testTitle);
 		out.write(",");
 
-		long totalOperations = 0;
+		long totalOperations;
 		long totalReads = 0;
 		long totalWrites = 0;
 		long totalDeletes = 0;
 
 		long skipFirst = 1;
 
-		for(BenchmarkResult result : benchmarkResults)
+		for (BenchmarkResult result : benchmarkResults)
 		{
-			if(iteration < skipFirst)
+			if (iteration < skipFirst)
 			{
 				totalReads += result.getReads();
 				totalWrites += result.getWrites();
@@ -153,13 +174,13 @@ public class BenchmarkRunner
 		}
 
 		totalOperations = totalReads + totalWrites + totalDeletes;
-		out.write(Long.toString(totalOperations/averageCounts));
+		out.write(Long.toString(totalOperations / averageCounts));
 		out.write(",");
-		out.write(Long.toString(totalReads/averageCounts));
+		out.write(Long.toString(totalReads / averageCounts));
 		out.write(",");
-		out.write(Long.toString(totalWrites/averageCounts));
+		out.write(Long.toString(totalWrites / averageCounts));
 		out.write(",");
-		out.write(Long.toString(totalDeletes/averageCounts));
+		out.write(Long.toString(totalDeletes / averageCounts));
 		out.write("\n");
 		out.flush();
 	}

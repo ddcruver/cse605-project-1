@@ -17,8 +17,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public class BenchmarkDriver
 {
 	private static final Logger LOG = LoggerFactory.getLogger(BenchmarkDriver.class);
-	private static final long SLEEP_PRECISION = TimeUnit.MILLISECONDS.toNanos(10);
-	private static final long SPIN_YIELD_PRECISION = TimeUnit.MILLISECONDS.toNanos(2);
+	private static final long SLEEP_PRECISION = TimeUnit.MILLISECONDS.toNanos(1000);
+	private static final long SPIN_YIELD_PRECISION = TimeUnit.MILLISECONDS.toNanos(100);
 
 	public List<BenchmarkResult> runIterations(final Benchmark benchmark, int secondsToRun, int threadPoolSize, int iterations) throws InterruptedException
 	{
@@ -49,7 +49,7 @@ public class BenchmarkDriver
 		executor.prestartAllCoreThreads();
 		executor.setCorePoolSize(threadPoolSize);
 
-		long currentActiveCount = warmUpThreadPool(executor, threadPoolSize, 2);
+		warmUpThreadPool(executor, 2, 2);
 
 		benchmark.initRun();
 
@@ -91,7 +91,7 @@ public class BenchmarkDriver
 			});
 		}
 
-		LOG.info("Waiting for {} Threads to Initialize", Long.valueOf(threadPoolSize));
+		LOG.info("Waiting for {} Threads to Initialize", threadPoolSize);
 		threadsReady.acquire(threadPoolSize);
 		LOG.info("Starting Threads");
 		canBegin.release(threadPoolSize);
@@ -130,7 +130,7 @@ public class BenchmarkDriver
 		final long warmUpTime = (long) Math.pow(10, 9) * warmUpTimeSec;
 		final long warmUpThreads = executor.getPoolSize() * threadPerCoreThreads;
 
-		LOG.debug("Warm Up Time: {}", warmUpTime);
+		LOG.debug("Warm Up Time: {} ms", TimeUnit.NANOSECONDS.toMillis(warmUpTime));
 
 		for (int i = 0; i < warmUpThreads; i++)
 		{
