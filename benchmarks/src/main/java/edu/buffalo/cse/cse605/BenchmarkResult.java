@@ -43,6 +43,6 @@ public class BenchmarkResult
 
 	public String toCsv()
 	{
-		return reads + "," + writes + "," + deletes;
+		return (reads + writes + deletes) + "," + reads + "," + writes + "," + deletes;
 	}
 }
