@@ -12,9 +12,9 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public interface Benchmark
 {
-	public void initRun();
-	public void initThread(int threadNumber);
-	public void run(int threadNumber);
+	public void initRun() throws InterruptedException;
+	public void initThread(int threadNumber) throws InterruptedException;
+	public void run(int threadNumber) throws InterruptedException;
 
 	public boolean getRunning();
 	public void setRunning(boolean value);

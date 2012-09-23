@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory;
  * Date: 9/21/12
  * Time: 10:16 AM
  */
-public class BenchmarkFDCoarse
+public class BenchmarkFDCoarseRead80Write10Delete10
 {
-	private static final transient Logger LOG = LoggerFactory.getLogger(BenchmarkFDCoarse.class);
+	private static final transient Logger LOG = LoggerFactory.getLogger(BenchmarkFDCoarseRead80Write10Delete10.class);
 
 	public static void main(String args[]) throws InterruptedException
 	{

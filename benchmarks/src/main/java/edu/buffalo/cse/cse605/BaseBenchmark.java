@@ -60,6 +60,4 @@ public abstract class BaseBenchmark implements Benchmark
 	{
 		return deleteCount;
 	}
-
-
 }

@@ -9,7 +9,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -25,13 +24,13 @@ public class BenchmarkDriver
 	public List<BenchmarkResult> runIterations(final Benchmark benchmark, int threadPoolSize, int iterations) throws InterruptedException
 	{
 		List<BenchmarkResult> results = new ArrayList<BenchmarkResult>();
-		for(int i = 0; i < iterations; i++)
+		for (int i = 0; i < iterations; i++)
 		{
 			results.add(runIteration(benchmark, threadPoolSize));
 		}
 
 		StringBuilder resultsStringBuiler = new StringBuilder();
-		for(BenchmarkResult result : results)
+		for (BenchmarkResult result : results)
 		{
 			resultsStringBuiler.append(result.toCsv());
 			resultsStringBuiler.append("\n");
@@ -58,32 +57,40 @@ public class BenchmarkDriver
 		final Semaphore threadsReady = new Semaphore(0);
 		final Semaphore canBegin = new Semaphore(0);
 
-	    for(int i = 0; i < threadPoolSize; i++)
-	    {
-		    final int threadNumber = i;
+		for (int i = 0; i < threadPoolSize; i++)
+		{
+			final int threadNumber = i;
 			executor.submit(new Runnable()
 			{
 				@Override
 				public void run()
 				{
 
-				   benchmark.initThread(threadNumber);
-				   threadsReady.release();
-				   try
-				   {
-				       canBegin.acquire();
-					   benchmark.run(threadNumber);
-				   } catch(InterruptedException ex)
-				   {
-					   System.err.println("Was interrupted while waiting for beginning of run.");
-				   } finally {
-					   running.release();
-				   }
+					try
+					{
+						benchmark.initThread(threadNumber);
+					} catch (InterruptedException ex)
+					{
+						LOG.error("Was interrupted while initializing thread.", ex);
+					}
+
+					threadsReady.release();
+					try
+					{
+						canBegin.acquire();
+						benchmark.run(threadNumber);
+					} catch (InterruptedException ex)
+					{
+						LOG.error("Was interrupted while waiting for beginning of run.", ex);
+					} finally
+					{
+						running.release();
+					}
 
 
 				}
 			});
-	    }
+		}
 
 		LOG.info("Waiting for {} Threads to Initialize", Long.valueOf(threadPoolSize));
 		threadsReady.acquire(threadPoolSize);
@@ -104,6 +111,7 @@ public class BenchmarkDriver
 
 		BenchmarkResult result = new BenchmarkResult(benchmark);
 
+		LOG.debug("Cleaning up Test");
 		shutdownThreadPoolExecutor(executor);
 
 		return result;
@@ -114,16 +122,18 @@ public class BenchmarkDriver
 		final AtomicLong warmUpCounterThreads = new AtomicLong(0);
 		final AtomicLong warmUpCounterSpins = new AtomicLong(0);
 
-		final long warmUpTime = (long)Math.pow(10, 9) * warmUpTimeSec;
+		final long warmUpTime = (long) Math.pow(10, 9) * warmUpTimeSec;
 		final long warmUpThreads = executor.getPoolSize() * threadPerCoreThreads;
 
 		LOG.debug("Warm Up Time: {}", warmUpTime);
 
-		for(int i = 0; i < warmUpThreads; i++)
+		for (int i = 0; i < warmUpThreads; i++)
 		{
-			executor.submit(new Runnable() {
+			executor.submit(new Runnable()
+			{
 				@Override
-				public void run() {
+				public void run()
+				{
 
 					long startTime = System.nanoTime();
 					long endTime = startTime + warmUpTime;
@@ -131,7 +141,7 @@ public class BenchmarkDriver
 					warmUpCounterThreads.incrementAndGet();
 
 					long currentTime = 0;
-					while(currentTime <= endTime)
+					while (currentTime <= endTime)
 					{
 						currentTime = System.nanoTime();
 						warmUpCounterSpins.incrementAndGet();
@@ -141,7 +151,7 @@ public class BenchmarkDriver
 		}
 
 		long completedTasks = -1;
-		while(completedTasks < warmUpThreads)
+		while (completedTasks < warmUpThreads)
 		{
 			completedTasks = executor.getCompletedTaskCount();
 		}
@@ -166,7 +176,8 @@ public class BenchmarkDriver
 	}
 
 
-	public static Double getRandomDouble() {
+	public static Double getRandomDouble()
+	{
 		return Math.random();
 	}
 }
