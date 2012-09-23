@@ -16,15 +16,16 @@ public class BenchmarkFDCoarse
 
 	public static void main(String args[]) throws InterruptedException
 	{
-		if(args.length < 2)
+		if(args.length < 3)
 		{
-			System.out.println("Did not provide the valid amount of arguments");
+			System.out.println("Did not provide the valid amount of arguments: <threads> <iterations> <initialListSize>");
 			System.exit(-1);
 		}
 		int threads = Integer.parseInt(args[0]);
 		int iterations = Integer.parseInt(args[1]);
+		long initialListSize = Long.parseLong(args[2]);
 
-		Benchmark benchmark = new BenchmarkFDCoarseReadOnly(threads);
+		Benchmark benchmark = new BenchmarkFDCoarseReadOnly(threads, initialListSize);
 		BenchmarkDriver driver = new BenchmarkDriver();
 		driver.runIterations(benchmark, threads, iterations);
 	}

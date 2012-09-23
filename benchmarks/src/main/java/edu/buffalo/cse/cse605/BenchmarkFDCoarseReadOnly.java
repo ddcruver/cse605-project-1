@@ -16,8 +16,9 @@ public class BenchmarkFDCoarseReadOnly extends BaseBenchmark
 
 	private FDCoarse<Double>.Cursor cursors[];
 
-	public BenchmarkFDCoarseReadOnly(int threads)
+	public BenchmarkFDCoarseReadOnly(int threads, long initialListSize)
 	{
+		super(threads, initialListSize);
 		cursors = new FDCoarse.Cursor[threads];
 	}
 
@@ -33,14 +34,11 @@ public class BenchmarkFDCoarseReadOnly extends BaseBenchmark
 
 		FDCoarse<Double>.Cursor reader = list.reader(list.head());
 
-		long readListSize = 10000;
-
-		for(int i = 0; i < readListSize; i++)
+		for(int i = 0; i < initialListSize; i++)
 		{
 				reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
 				reader.next();
 		}
-
 	}
 
 	@Override
@@ -48,13 +46,19 @@ public class BenchmarkFDCoarseReadOnly extends BaseBenchmark
 	{
 		FDCoarse<Double>.Cursor reader = list.reader(list.head());
 
-		cursors[threadNumber] = reader;
+		long skips = (long) (Math.random() * (double)initialListSize);
+		for(int s = 0; s < skips; s++)
+		{
+			reader.next();
+		}
 
+		cursors[threadNumber] = reader;
 	}
 
 	@Override
 	public void run(int threadNumber)
 	{
+		// Get this threads cursor
 		FDCoarse<Double>.Cursor reader = cursors[threadNumber];
 		boolean add = true;
 
@@ -63,6 +67,5 @@ public class BenchmarkFDCoarseReadOnly extends BaseBenchmark
 			reader.next();
 			readCount.incrementAndGet();
 		}
-
 	}
 }
