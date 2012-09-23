@@ -40,37 +40,58 @@ public class FDListFine<T> {
 
 
 		public void delete() {
-            Element prev = currentElement.getPrev();
-            if(prev.isTail()){
-                prev = currentElement;
-            }
-            synchronized (prev){
-                synchronized (currentElement){
-                    synchronized (currentElement.getNext()){
-                        if (currentElement.isDeleted()) {
-                            throw new IllegalStateException("The requested element was previously deleted.");
-                        }
-                        if (! currentElement.isHead()){
-                            currentElement.delete();
-                            cursor.next();
+            while (true) {
+                Element prev = currentElement.getPrev();
+                Element adjustedPrev = prev;
+                if (prev.isTail()) {
+                    adjustedPrev = currentElement;
+                }
+
+                synchronized (adjustedPrev) {
+                    if (prev != currentElement.getPrev() && !currentElement.getPrev().isTail()) {
+                        System.out.println("oops");
+                        continue;
+                    }
+
+                    synchronized (currentElement) {
+                        synchronized (currentElement.getNext()) {
+                            if (currentElement.isDeleted()) {
+                                throw new IllegalStateException("The requested element was previously deleted.");
+                            }
+                            if (!currentElement.isHead()) {
+                                currentElement.delete();
+                                cursor.next();
+                            }
+                            break;
                         }
                     }
                 }
             }
-
-
 		}
 
 		public boolean insertBefore(T val) {
-            Element prev = currentElement.getPrev();
-            if(prev.isTail()){
-                prev = currentElement;
-            }
-            synchronized (prev){
-                synchronized (currentElement){
-                    synchronized (currentElement.getNext()){
-                        Element newElement = new Element(val, currentElement.getPrev(), currentElement);
-                        newElement.adjustNeighbors();
+            while (true) {
+                Element prev = currentElement.getPrev();
+                Element adjustedPrev = prev;
+                if (prev.isTail()) {
+                    adjustedPrev = currentElement;
+                }
+
+                synchronized (adjustedPrev) {
+                    if (prev != currentElement.getPrev() && !currentElement.getPrev().isTail()) {
+                        System.out.println("oops");
+                        continue;
+                    }
+
+                    synchronized (currentElement) {
+                        synchronized (currentElement.getNext()) {
+                            if (currentElement.isDeleted()) {
+                                throw new IllegalStateException("The requested element was previously deleted.");
+                            }
+                            Element newElement = new Element(val, currentElement.getPrev(), currentElement);
+                            newElement.adjustNeighbors();
+                            break;
+                        }
                     }
                 }
             }
@@ -78,15 +99,28 @@ public class FDListFine<T> {
 		}
 
 		public boolean insertAfter(T val) {
-            Element prev = currentElement.getPrev();
-            if(prev.isTail()){
-                prev = currentElement;
-            }
-            synchronized (prev){
-                synchronized (currentElement){
-                    synchronized (currentElement.getNext()){
-                        Element newElement = new Element(val, currentElement, currentElement.getNext());
-                        newElement.adjustNeighbors();
+            while (true) {
+                Element prev = currentElement.getPrev();
+                Element adjustedPrev = prev;
+                if (prev.isTail()) {
+                    adjustedPrev = currentElement;
+                }
+
+                synchronized (adjustedPrev) {
+                    if (prev != currentElement.getPrev() && !currentElement.getPrev().isTail()) {
+                        System.out.println("oops");
+                        continue;
+                    }
+
+                    synchronized (currentElement) {
+                        synchronized (currentElement.getNext()) {
+                            if (currentElement.isDeleted()) {
+                                throw new IllegalStateException("The requested element was previously deleted.");
+                            }
+                            Element newElement = new Element(val, currentElement, currentElement.getNext());
+                            newElement.adjustNeighbors();
+                            break;
+                        }
                     }
                 }
             }
@@ -168,7 +202,7 @@ public class FDListFine<T> {
 		}
 
 		private Element getNext() {
-			return next.get();
+                return next.get();
 		}
 
 		private void setNext(Element next) {
@@ -176,7 +210,7 @@ public class FDListFine<T> {
 		}
 
 		private Element getPrev() {
-			return prev.get();
+            return prev.get();
 		}
 
 		private void setPrev(Element prev) {
