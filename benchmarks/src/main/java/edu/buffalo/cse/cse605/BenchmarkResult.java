@@ -5,7 +5,6 @@ package edu.buffalo.cse.cse605;
  * User: ddcruver
  * Date: 9/22/12
  * Time: 8:44 PM
- * To change this template use File | Settings | File Templates.
  */
 public class BenchmarkResult
 {

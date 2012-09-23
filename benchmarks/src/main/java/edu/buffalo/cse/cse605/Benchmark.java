@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * User: ddcruver
  * Date: 9/22/12
  * Time: 12:32 PM
- * To change this template use File | Settings | File Templates.
  */
 public interface Benchmark
 {
