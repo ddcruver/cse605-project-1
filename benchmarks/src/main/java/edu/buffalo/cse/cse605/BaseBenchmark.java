@@ -20,14 +20,16 @@ public abstract class BaseBenchmark implements Benchmark
 	protected AtomicLong writeCount;
 	protected AtomicLong deleteCount;
 
+	protected final String testName;
 	protected final int threads;
 	protected final long initialListSize;
 
 	protected volatile boolean running;
 
-	public BaseBenchmark(int threadCount, long initialListSize)
+	public BaseBenchmark(String testName, int threadCount, long initialListSize)
 	{
-		threads = threadCount;
+		this.testName = testName;
+		this.threads = threadCount;
 		this.initialListSize =  initialListSize;
 	}
 
@@ -59,5 +61,11 @@ public abstract class BaseBenchmark implements Benchmark
 	public AtomicLong getDeleteAtomicCount()
 	{
 		return deleteCount;
+	}
+
+	@Override
+	public String getTestName()
+	{
+		return testName;
 	}
 }

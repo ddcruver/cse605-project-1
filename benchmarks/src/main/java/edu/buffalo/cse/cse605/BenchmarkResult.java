@@ -41,7 +41,7 @@ public class BenchmarkResult
 		return deletes;
 	}
 
-	public Object toCsv()
+	public String toCsv()
 	{
 		return reads + "," + writes + "," + deletes;
 	}

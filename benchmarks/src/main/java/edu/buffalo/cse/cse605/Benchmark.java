@@ -22,4 +22,6 @@ public interface Benchmark
 	public AtomicLong getReadAtomicCount();
 	public AtomicLong getWriteAtomicCount();
 	public AtomicLong getDeleteAtomicCount();
+
+	public String getTestName();
 }

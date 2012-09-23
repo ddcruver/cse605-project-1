@@ -5,10 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -20,13 +17,15 @@ import java.util.concurrent.atomic.AtomicLong;
 public class BenchmarkDriver
 {
 	private static final Logger LOG = LoggerFactory.getLogger(BenchmarkDriver.class);
+	private static final long SLEEP_PRECISION = TimeUnit.MILLISECONDS.toNanos(10);
+	private static final long SPIN_YIELD_PRECISION = TimeUnit.MILLISECONDS.toNanos(2);
 
-	public List<BenchmarkResult> runIterations(final Benchmark benchmark, int threadPoolSize, int iterations) throws InterruptedException
+	public List<BenchmarkResult> runIterations(final Benchmark benchmark, int secondsToRun, int threadPoolSize, int iterations) throws InterruptedException
 	{
 		List<BenchmarkResult> results = new ArrayList<BenchmarkResult>();
 		for (int i = 0; i < iterations; i++)
 		{
-			results.add(runIteration(benchmark, threadPoolSize));
+			results.add(runIteration(benchmark, secondsToRun, threadPoolSize));
 		}
 
 		StringBuilder resultsStringBuiler = new StringBuilder();
@@ -36,12 +35,12 @@ public class BenchmarkDriver
 			resultsStringBuiler.append("\n");
 		}
 
-		LOG.info("Results:\n{}", resultsStringBuiler);
+		LOG.info("{} Results:\n{}", benchmark.getTestName(), resultsStringBuiler);
 
 		return results;
 	}
 
-	public BenchmarkResult runIteration(final Benchmark benchmark, final int threadPoolSize) throws InterruptedException
+	public BenchmarkResult runIteration(final Benchmark benchmark, final int secondsToRun, final int threadPoolSize) throws InterruptedException
 	{
 		// Setup Thread Pool
 		ExecutorService threadPool = Executors.newFixedThreadPool(threadPoolSize);
@@ -49,7 +48,7 @@ public class BenchmarkDriver
 		executor.prestartAllCoreThreads();
 		executor.setCorePoolSize(threadPoolSize);
 
-		long currentActiveCount = warmUpThreadPool(executor, 2, 2);
+		long currentActiveCount = warmUpThreadPool(executor, threadPoolSize, 2);
 
 		benchmark.initRun();
 
@@ -65,7 +64,6 @@ public class BenchmarkDriver
 				@Override
 				public void run()
 				{
-
 					try
 					{
 						benchmark.initThread(threadNumber);
@@ -97,13 +95,19 @@ public class BenchmarkDriver
 		LOG.info("Starting Threads");
 		canBegin.release(threadPoolSize);
 
-		int secondsToRun = 5;
-
 		LOG.info("Letting threads run for {} seconds", secondsToRun);
-		Thread.sleep(5000);
+		long startTime = System.nanoTime();
+
+		sleepNanos(TimeUnit.SECONDS.toNanos(secondsToRun));
+
 		LOG.debug("Set Run State to False");
 		benchmark.setRunning(false);
+
 		running.acquire(threadPoolSize);
+
+		long endTime = System.nanoTime();
+		long elapsedTime = endTime - startTime;
+		LOG.info("Ran for {} seconds ({} ms)", TimeUnit.NANOSECONDS.toSeconds(elapsedTime), TimeUnit.NANOSECONDS.toMillis(elapsedTime));
 
 		LOG.info("All Running Threads were Terminated");
 
@@ -179,5 +183,25 @@ public class BenchmarkDriver
 	public static Double getRandomDouble()
 	{
 		return Math.random();
+	}
+
+	public static Double getRandomDouble(double max)
+	{
+		return Math.random() * max;
+	}
+
+	public static void sleepNanos(long nanoDuration) throws InterruptedException
+	{
+		final long end = System.nanoTime() + nanoDuration;
+		long timeLeft = nanoDuration;
+		do
+		{
+			if (timeLeft > SLEEP_PRECISION)
+				Thread.sleep(1);
+			else if (timeLeft > SPIN_YIELD_PRECISION)
+				Thread.yield();
+
+			timeLeft = end - System.nanoTime();
+		} while (timeLeft > 0);
 	}
 }

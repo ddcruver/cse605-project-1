@@ -1,24 +1,22 @@
 package edu.buffalo.cse.cse605;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created with IntelliJ IDEA.
  * User: ddcruver
- * Date: 9/22/12
- * Time: 1:09 PM
+ * Date: 9/21/12
+ * Time: 10:16 AM
  */
-public class BenchmarkFDCoarseReadOnly extends BaseBenchmark
+public class BenchmarkFDCoarseRead50Write25Delete25 extends BaseBenchmark
 {
 	private FDCoarse<Double> list;
 
 	private FDCoarse<Double>.Cursor cursors[];
 
-	public BenchmarkFDCoarseReadOnly(int threads, long initialListSize)
+	public BenchmarkFDCoarseRead50Write25Delete25(int threads, long initialListSize)
 	{
-		super(BenchmarkFDCoarseReadOnly.class.getSimpleName(), threads, initialListSize);
+		super(BenchmarkFDCoarseRead50Write25Delete25.class.getSimpleName(), threads, initialListSize);
 		cursors = new FDCoarse.Cursor[threads];
 	}
 
@@ -36,8 +34,8 @@ public class BenchmarkFDCoarseReadOnly extends BaseBenchmark
 
 		for(int i = 0; i < initialListSize; i++)
 		{
-				reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
-				reader.next();
+			reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
+			reader.next();
 		}
 	}
 
@@ -63,9 +61,29 @@ public class BenchmarkFDCoarseReadOnly extends BaseBenchmark
 		boolean add = true;
 
 		while (running && !Thread.currentThread().isInterrupted()) {
-			Double value = reader.curr().value();
-			reader.next();
-			readCount.incrementAndGet();
+			double decision = BenchmarkDriver.getRandomDouble(10);
+			if(decision < 5.0)
+			{
+				Double value = reader.curr().value();
+				reader.next();
+				readCount.incrementAndGet();
+			} else if(decision < 6.5)
+			{
+				reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
+				reader.next();
+				writeCount.incrementAndGet();
+			} else if(decision < 7.5)
+			{
+				reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
+				reader.next();
+				writeCount.incrementAndGet();
+			} else
+			{
+				reader.writer().delete();
+				reader.next();
+				deleteCount.incrementAndGet();
+			}
 		}
 	}
+
 }

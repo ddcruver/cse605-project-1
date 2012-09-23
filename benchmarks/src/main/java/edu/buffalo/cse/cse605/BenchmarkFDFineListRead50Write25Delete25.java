@@ -8,15 +8,15 @@ import java.util.concurrent.atomic.AtomicLong;
  * Date: 9/21/12
  * Time: 10:16 AM
  */
-public class BenchmarkFDFineListReadOnly extends BaseBenchmark
+public class BenchmarkFDFineListRead50Write25Delete25 extends BaseBenchmark
 {
 	private FDListFine<Double> list;
 
 	private FDListFine<Double>.Cursor cursors[];
 
-	public BenchmarkFDFineListReadOnly(int threads, long initialListSize)
+	public BenchmarkFDFineListRead50Write25Delete25(int threads, long initialListSize)
 	{
-		super(BenchmarkFDFineListReadOnly.class.getSimpleName(), threads, initialListSize);
+		super(BenchmarkFDFineListRead50Write25Delete25.class.getSimpleName(), threads, initialListSize);
 		cursors = new FDListFine.Cursor[threads];
 	}
 
@@ -61,9 +61,29 @@ public class BenchmarkFDFineListReadOnly extends BaseBenchmark
 		boolean add = true;
 
 		while (running && !Thread.currentThread().isInterrupted()) {
-			Double value = reader.curr().value();
-			reader.next();
-			readCount.incrementAndGet();
+			double decision = BenchmarkDriver.getRandomDouble(10);
+			if(decision < 5.0)
+			{
+				Double value = reader.curr().value();
+				reader.next();
+				readCount.incrementAndGet();
+			} else if(decision < 6.5)
+			{
+				reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
+				reader.next();
+				writeCount.incrementAndGet();
+			} else if(decision < 7.5)
+			{
+				reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
+				reader.next();
+				writeCount.incrementAndGet();
+			} else
+			{
+				reader.writer().delete();
+				reader.next();
+				deleteCount.incrementAndGet();
+			}
 		}
 	}
+
 }

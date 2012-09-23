@@ -16,7 +16,7 @@ public class BenchmarkFDListRWReadyOnly extends BaseBenchmark
 
 	public BenchmarkFDListRWReadyOnly(int threads, long initialListSize)
 	{
-		super(threads, initialListSize);
+		super(BenchmarkFDListRWReadyOnly.class.getSimpleName(), threads, initialListSize);
 		cursors = new FDListRW.Cursor[threads];
 	}
 
@@ -25,7 +25,7 @@ public class BenchmarkFDListRWReadyOnly extends BaseBenchmark
 	{
 		FDListRW<Double>.Cursor reader = list.reader(list.head());
 
-		long skips = (long) (Math.random() * (double)initialListSize);
+		long skips = BenchmarkDriver.getRandomDouble(initialListSize).longValue();
 		for(int s = 0; s < skips; s++)
 		{
 			reader.next();

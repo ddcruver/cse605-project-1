@@ -43,6 +43,7 @@ public class FDListRW<T> extends FDList<T> {
 		lock.acquire();
 
 		try {
+
 			return new ElementRW(val);
 		} finally {
 			lock.release();
