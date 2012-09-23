@@ -1,5 +1,7 @@
 package edu.buffalo.cse.cse605;
 
+import edu.buffalo.cse.cse605.rw.SimpleRWLock;
+
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -16,7 +18,8 @@ public class FDListRW<T> extends FDList<T> {
 		super(v);
 
 //		readWriteLock = new ReentrantReadWriteLock();
-		readWriteLock = new MyRWLock();
+//		readWriteLock = new MyRWLock();
+		readWriteLock = new SimpleRWLock();
 	}
 
 	@Override
