@@ -91,9 +91,11 @@ public class FDListFineThreadedTest {
                             if (add) {
                                 for (int i = 0; i < numberInserts; i++) {
                                     if(i%2==0){
+                                        reader.curr().value();
                                         reader.writer().insertAfter(getRandomDouble());
                                     }
                                     else{
+                                        reader.curr().value();
                                         reader.writer().insertBefore(getRandomDouble());
                                     }
                                     insertSize.incrementAndGet();
@@ -105,6 +107,7 @@ public class FDListFineThreadedTest {
                             } else {
                                 reader.next();
                                 for (int i = 0; i < numberDeletes; i++) {
+                                    reader.curr().value();
                                     reader.writer().delete();
                                     removeSize.incrementAndGet();
                                     if(comparisonList.size() > 0){
@@ -117,7 +120,9 @@ public class FDListFineThreadedTest {
                         catch(Exception e){
                             e.printStackTrace();
                             log.debug("Found a deleted node ... we have to reinitialize the reader.");
-                            reader = list.reader(list.head());
+                            synchronized (list.head()){
+                                reader = list.reader(list.head());
+                            }
                         }
 					}
 				}

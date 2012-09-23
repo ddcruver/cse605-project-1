@@ -52,11 +52,14 @@ public class FDListFine<T> {
                         System.out.println("oops");
                         continue;
                     }
-
                     synchronized (currentElement) {
+
                         synchronized (currentElement.getNext()) {
                             if (currentElement.isDeleted()) {
                                 throw new IllegalStateException("The requested element was previously deleted.");
+                            }
+                            if(currentElement.isHead() && currentElement.getNext().isTail()){
+                                throw new IllegalStateException("Trying to delete a single entry list.");
                             }
                             if (!currentElement.isHead()) {
                                 currentElement.delete();
