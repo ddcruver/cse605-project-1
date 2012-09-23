@@ -25,6 +25,7 @@ public class BenchmarkDriver
 		List<BenchmarkResult> results = new ArrayList<BenchmarkResult>();
 		for (int i = 0; i < iterations; i++)
 		{
+			LOG.info("Initialize Test #{} for {}", i+1, benchmark.getTestName());
 			results.add(runIteration(benchmark, secondsToRun, threadPoolSize));
 		}
 
