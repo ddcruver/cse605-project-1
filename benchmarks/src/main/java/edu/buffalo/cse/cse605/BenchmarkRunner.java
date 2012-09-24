@@ -102,7 +102,7 @@ public class BenchmarkRunner
 
 	private static String getBaseFileName(int threads, int iterations, int secondsToRun, long initialListSize)
 	{
-		return "benchmark" + threads + "t-" + iterations + "i-" + secondsToRun + "s-" + initialListSize + "ils";
+		return "benchmark-" + threads + "t-" + iterations + "i-" + secondsToRun + "s-" + initialListSize + "ils";
 	}
 
 	private static BufferedWriter getRawResultWriter(int threads, int iterations, int secondsToRun, long initialListSize) throws IOException

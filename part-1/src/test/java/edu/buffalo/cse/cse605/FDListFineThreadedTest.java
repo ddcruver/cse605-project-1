@@ -139,7 +139,7 @@ public class FDListFineThreadedTest {
 			boolean terminated = false;
 			while (!terminated) {
 				terminated = tpe.awaitTermination(30, TimeUnit.SECONDS);
-				log.debug("Is TheadPoolExecutor done ... {}", terminated);
+				log.debug("Is ThreadPoolExecutor done ... {}", terminated);
 			}
 		} catch (InterruptedException e) {
 			log.error("Interrupted during termination of pool.");
