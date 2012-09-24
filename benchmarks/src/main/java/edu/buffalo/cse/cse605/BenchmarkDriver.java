@@ -46,8 +46,8 @@ public class BenchmarkDriver
 		// Setup Thread Pool
 		ExecutorService threadPool = Executors.newFixedThreadPool(threadPoolSize);
 		ThreadPoolExecutor executor = (ThreadPoolExecutor) threadPool;
+        executor.setCorePoolSize(threadPoolSize);
 		executor.prestartAllCoreThreads();
-		executor.setCorePoolSize(threadPoolSize);
 
 		warmUpThreadPool(executor, 2, 2);
 
