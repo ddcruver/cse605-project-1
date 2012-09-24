@@ -115,9 +115,8 @@ public class FDListFineThreadedTest {
 								}
 								add = true;
 							}
-						} catch (Exception e) {
-							e.printStackTrace();
-							log.debug("Found a deleted node ... we have to reinitialize the reader.");
+						} catch (IllegalStateException e) {
+							log.trace("Found a deleted node ... we have to reinitialize the reader.");
 							synchronized (list.head()) {
 								reader = list.reader(list.head());
 							}
