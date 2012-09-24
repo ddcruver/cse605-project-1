@@ -78,7 +78,7 @@ public class BenchmarkRwRunner
 
 	private static String getBaseFileName(int threads, int iterations, int secondsToRun, long initialListSize)
 	{
-		return "coarse-and-rw-benchmark-" + threads + "t-" + iterations + "i-" + secondsToRun + "s-" + initialListSize + "ils";
+		return "rw-benchmark-" + threads + "t-" + iterations + "i-" + secondsToRun + "s-" + initialListSize + "ils";
 	}
 
 	private static BufferedWriter getRawResultWriter(int threads, int iterations, int secondsToRun, long initialListSize) throws IOException
