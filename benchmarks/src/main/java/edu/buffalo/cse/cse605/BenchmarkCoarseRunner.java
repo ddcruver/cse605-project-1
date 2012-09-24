@@ -15,9 +15,9 @@ import java.util.List;
  * Date: 9/22/12
  * Time: 9:16 PM
  */
-public class BenchmarkCoarseAndRwRunner
+public class BenchmarkCoarseRunner
 {
-	private static final transient Logger LOG = LoggerFactory.getLogger(BenchmarkCoarseAndRwRunner.class);
+	private static final transient Logger LOG = LoggerFactory.getLogger(BenchmarkCoarseRunner.class);
 
 	public static void main(String args[]) throws InterruptedException, IOException
 	{
@@ -42,25 +42,13 @@ public class BenchmarkCoarseAndRwRunner
 		List<BenchmarkResult> coarseReadOnlyResults = driver.runIterations(coarseReadOnly, secondsToRun, threads, iterations);
 		writeResults("FDCoarse 100% Reads", coarseReadOnlyResults, rawOut, normalizedOut);
 
-		Benchmark rwReadOnly = new BenchmarkFDListRWReadyOnly(threads, initialListSize);
-		List<BenchmarkResult> rwReadOnlyResults = driver.runIterations(rwReadOnly, secondsToRun, threads, iterations);
-		writeResults("FDListRW 100% Reads", rwReadOnlyResults, rawOut, normalizedOut);
-
 		Benchmark coarse801010 = new BenchmarkFDCoarseRead80Write10Delete10(threads, initialListSize);
 		List<BenchmarkResult> coarse801010Results = driver.runIterations(coarse801010, secondsToRun, threads, iterations);
 		writeResults("FDCoarse 80% Reads 10% Writes 10% Deletes", coarse801010Results, rawOut, normalizedOut);
 
-		Benchmark rw801010 = new BenchmarkFDListRWRead80Write10Delete10(threads, initialListSize);
-		List<BenchmarkResult> rw801010Results = driver.runIterations(rw801010, secondsToRun, threads, iterations);
-		writeResults("FDListRW 80% Reads 10% Writes 10% Deletes", rw801010Results, rawOut, normalizedOut);
-
 		Benchmark coarse502525 = new BenchmarkFDCoarseRead50Write25Delete25(threads, initialListSize);
 		List<BenchmarkResult> coarse502525Results = driver.runIterations(coarse502525, secondsToRun, threads, iterations);
 		writeResults("FDCoarse 50% Reads 25% Writes 25% Deletes", coarse502525Results, rawOut, normalizedOut);
-
-		Benchmark rw502525 = new BenchmarkFDListRWRead50Write25Delete25(threads, initialListSize);
-		List<BenchmarkResult> rw5025250Results = driver.runIterations(rw502525, secondsToRun, threads, iterations);
-		writeResults("FDListRW 50% Reads 25% Writes 25% Deletes", rw5025250Results, rawOut, normalizedOut);
 
 		rawOut.close();
 		normalizedOut.close();
