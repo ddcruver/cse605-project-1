@@ -204,8 +204,8 @@ public class BenchmarkDriver
 		{
 			if (timeLeft > SLEEP_PRECISION)
 				Thread.sleep(1);
-			else if (timeLeft > SPIN_YIELD_PRECISION)
-				Thread.yield();
+			//else if (timeLeft > SPIN_YIELD_PRECISION)
+			//	Thread.yield();
 
 			timeLeft = end - System.nanoTime();
 		} while (timeLeft > 0);
