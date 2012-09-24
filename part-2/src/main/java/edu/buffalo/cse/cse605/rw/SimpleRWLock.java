@@ -31,7 +31,7 @@ public class SimpleRWLock implements java.util.concurrent.locks.ReadWriteLock {
 				try {
 					this.wait(5000);
 				} catch (InterruptedException e) {
-					return;
+					throw new RuntimeException(e);
 				}
 			}
 		}
