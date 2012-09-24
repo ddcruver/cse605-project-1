@@ -21,15 +21,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FDListFineThreadedTest {
 
-    private Logger log = LoggerFactory.getLogger(FDListFineThreadedTest.class);
+	private Logger log = LoggerFactory.getLogger(FDListFineThreadedTest.class);
 	private final int numberOfThreads = 10;
 
 	@Test
 	public void threadAccessToListInsertAndRemoveTest() throws InterruptedException {
-        addAndRemoveElements(numberOfThreads, 30000, 4, 1);
-        addAndRemoveElements(numberOfThreads, 30000, 4, 2);
+		addAndRemoveElements(numberOfThreads, 30000, 4, 1);
+		addAndRemoveElements(numberOfThreads, 30000, 4, 2);
 		addAndRemoveElements(numberOfThreads, 30000, 1, 1);
-        addAndRemoveElements(numberOfThreads, 30000, 3, 4);
+		addAndRemoveElements(numberOfThreads, 30000, 3, 4);
 	}
 
 	private void addAndRemoveElements(int threadPoolSize, int totalListOperations, int numberInserts, int numberDeletes) throws InterruptedException {
@@ -42,7 +42,7 @@ public class FDListFineThreadedTest {
 
 		addAndRemoveFromList(list, inserts, deletes, continueRun, threadPoolSize, numberInserts, numberDeletes, comparisonList, totalListOperations);
 		printSummaryResults(inserts, deletes);
-        log.debug(comparisonList.size() + " vs " + (inserts.get() - deletes.get()));
+		log.debug(comparisonList.size() + " vs " + (inserts.get() - deletes.get()));
 		testResults(list, comparisonList.size()/*inserts.get() - deletes.get()*/);
 	}
 
@@ -70,9 +70,9 @@ public class FDListFineThreadedTest {
 	}
 
 	private void printSummaryResults(AtomicInteger inserts, AtomicInteger deletes) {
-		System.out.println("Done");
-		System.out.println("Added " + inserts.get());
-		System.out.println("Removed " + deletes.get());
+		log.info("Done");
+		log.info("Added " + inserts.get());
+		log.info("Removed " + deletes.get());
 	}
 
 	private void addAndRemoveFromList(final FDListFine<Double> list, final AtomicInteger insertSize, final AtomicInteger removeSize,
@@ -87,70 +87,68 @@ public class FDListFineThreadedTest {
 					FDListFine<Double>.Cursor reader = list.reader(list.head());
 					boolean add = true;
 					while (continueRun.get() && !Thread.currentThread().isInterrupted()) {
-                        try{
-                            if (add) {
-                                for (int i = 0; i < numberInserts; i++) {
-                                    if(i%2==0){
-                                        reader.curr().value();
-                                        reader.writer().insertAfter(getRandomDouble());
-                                    }
-                                    else{
-                                        reader.curr().value();
-                                        reader.writer().insertBefore(getRandomDouble());
-                                    }
-                                    insertSize.incrementAndGet();
-                                    comparisonList.add(0.0);
+						try {
+							if (add) {
+								for (int i = 0; i < numberInserts; i++) {
+									if (i % 2 == 0) {
+										reader.curr().value();
+										reader.writer().insertAfter(getRandomDouble());
+									} else {
+										reader.curr().value();
+										reader.writer().insertBefore(getRandomDouble());
+									}
+									insertSize.incrementAndGet();
+									comparisonList.add(0.0);
 
-                                }
-                                add = false;
+								}
+								add = false;
 
-                            } else {
-                                reader.next();
-                                for (int i = 0; i < numberDeletes; i++) {
-                                    reader.curr().value();
-                                    reader.writer().delete();
-                                    removeSize.incrementAndGet();
-                                    if(comparisonList.size() > 0){
-                                        comparisonList.remove();
-                                    }
-                                }
-                                add = true;
-                            }
-                        }
-                        catch(Exception e){
-                            e.printStackTrace();
-                            log.debug("Found a deleted node ... we have to reinitialize the reader.");
-                            synchronized (list.head()){
-                                reader = list.reader(list.head());
-                            }
-                        }
+							} else {
+								reader.next();
+								for (int i = 0; i < numberDeletes; i++) {
+									reader.curr().value();
+									reader.writer().delete();
+									removeSize.incrementAndGet();
+									if (comparisonList.size() > 0) {
+										comparisonList.remove();
+									}
+								}
+								add = true;
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+							log.debug("Found a deleted node ... we have to reinitialize the reader.");
+							synchronized (list.head()) {
+								reader = list.reader(list.head());
+							}
+						}
 					}
 				}
 			});
 
 		}
 
-        log.debug("Sleeping...");
-        try {
-            Thread.sleep(totalListOperations);
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-        System.out.println("Shutting down now...");
-        tpe.shutdownNow();
-        try {
-            boolean terminated = false;
-            while(! terminated){
-                terminated = tpe.awaitTermination(30, TimeUnit.SECONDS);
-                log.debug("Is TheadPoolExecutor done ... {}", terminated);
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
+		log.debug("Sleeping...");
+		try {
+			Thread.sleep(totalListOperations);
+		} catch (InterruptedException e) {
+		}
 
-        log.debug("Shut down pool.");
+		log.info("Shutting down pool.");
+		tpe.shutdownNow();
+		try {
+			boolean terminated = false;
+			while (!terminated) {
+				terminated = tpe.awaitTermination(30, TimeUnit.SECONDS);
+				log.debug("Is TheadPoolExecutor done ... {}", terminated);
+			}
+		} catch (InterruptedException e) {
+			log.error("Interrupted during termination of pool.");
+		}
 
-    }
+		log.debug("Pool is shut down..");
+
+	}
 
 	private FDListFine<Double> createListOfSizeOne() {
 		// Create the list

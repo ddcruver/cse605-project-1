@@ -1,5 +1,8 @@
 package edu.buffalo.cse.cse605;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -9,11 +12,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * Time: 11:39 PM
  */
 public class FDListFine<T> {
+	private Logger Log = LoggerFactory.getLogger(FDListFine.class);
+
 	private final Element head;
 	private final Element tail;
 
 	public FDListFine(T v) {
-        head = new Head(v);
+		head = new Head(v);
 		tail = new Tail(v);
 		head.setNext(tail);
 		head.setPrev(tail);
@@ -40,93 +45,92 @@ public class FDListFine<T> {
 
 
 		public void delete() {
-            while (true) {
-                Element prev = currentElement.getPrev();
-                Element adjustedPrev = prev;
-                if (prev.isTail()) {
-                    adjustedPrev = currentElement;
-                }
+			while (true) {
+				Element prev = currentElement.getPrev();
+				Element adjustedPrev = prev;
+				if (prev.isTail()) {
+					adjustedPrev = currentElement;
+				}
 
-                synchronized (adjustedPrev) {
-                    if (prev != currentElement.getPrev() && !currentElement.getPrev().isTail()) {
-                        System.out.println("oops");
-                        continue;
-                    }
-                    synchronized (currentElement) {
+				synchronized (adjustedPrev) {
+					if (prev != currentElement.getPrev() && !currentElement.getPrev().isTail()) {
+						Log.trace("The previous element changed, have to reattempt lock acquisition.");
+						continue;
+					}
+					synchronized (currentElement) {
 
-                        synchronized (currentElement.getNext()) {
-                            if (currentElement.isDeleted()) {
-                                throw new IllegalStateException("The requested element was previously deleted.");
-                            }
-                            if(currentElement.isHead() && currentElement.getNext().isTail()){
-                                throw new IllegalStateException("Trying to delete a single entry list.");
-                            }
-                            if (!currentElement.isHead()) {
-                                currentElement.delete();
-                                cursor.next();
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
+						synchronized (currentElement.getNext()) {
+							if (currentElement.isDeleted()) {
+								throw new IllegalStateException("The requested element was previously deleted.");
+							}
+							if (currentElement.isHead()) {
+								throw new IllegalStateException("Trying to delete the head.");
+							}
+							currentElement.delete();
+							cursor.next();
+						}
+						break;
+
+					}
+				}
+			}
 		}
 
 		public boolean insertBefore(T val) {
-            while (true) {
-                Element prev = currentElement.getPrev();
-                Element adjustedPrev = prev;
-                if (prev.isTail()) {
-                    adjustedPrev = currentElement;
-                }
+			while (true) {
+				Element prev = currentElement.getPrev();
+				Element adjustedPrev = prev;
+				if (prev.isTail()) {
+					adjustedPrev = currentElement;
+				}
 
-                synchronized (adjustedPrev) {
-                    if (prev != currentElement.getPrev() && !currentElement.getPrev().isTail()) {
-                        System.out.println("oops");
-                        continue;
-                    }
+				synchronized (adjustedPrev) {
+					if (prev != currentElement.getPrev() && !currentElement.getPrev().isTail()) {
+						Log.trace("The previous element changed, have to reattempt lock acquisition.");
+						continue;
+					}
 
-                    synchronized (currentElement) {
-                        synchronized (currentElement.getNext()) {
-                            if (currentElement.isDeleted()) {
-                                throw new IllegalStateException("The requested element was previously deleted.");
-                            }
-                            Element newElement = new Element(val, currentElement.getPrev(), currentElement);
-                            newElement.adjustNeighbors();
-                            break;
-                        }
-                    }
-                }
-            }
+					synchronized (currentElement) {
+						synchronized (currentElement.getNext()) {
+							if (currentElement.isDeleted()) {
+								throw new IllegalStateException("The requested element was previously deleted.");
+							}
+							Element newElement = new Element(val, currentElement.getPrev(), currentElement);
+							newElement.adjustNeighbors();
+							break;
+						}
+					}
+				}
+			}
 			return true;
 		}
 
 		public boolean insertAfter(T val) {
-            while (true) {
-                Element prev = currentElement.getPrev();
-                Element adjustedPrev = prev;
-                if (prev.isTail()) {
-                    adjustedPrev = currentElement;
-                }
+			while (true) {
+				Element prev = currentElement.getPrev();
+				Element adjustedPrev = prev;
+				if (prev.isTail()) {
+					adjustedPrev = currentElement;
+				}
 
-                synchronized (adjustedPrev) {
-                    if (prev != currentElement.getPrev() && !currentElement.getPrev().isTail()) {
-                        System.out.println("oops");
-                        continue;
-                    }
+				synchronized (adjustedPrev) {
+					if (prev != currentElement.getPrev() && !currentElement.getPrev().isTail()) {
+						Log.trace("The previous element changed, have to reattempt lock acquisition.");
+						continue;
+					}
 
-                    synchronized (currentElement) {
-                        synchronized (currentElement.getNext()) {
-                            if (currentElement.isDeleted()) {
-                                throw new IllegalStateException("The requested element was previously deleted.");
-                            }
-                            Element newElement = new Element(val, currentElement, currentElement.getNext());
-                            newElement.adjustNeighbors();
-                            break;
-                        }
-                    }
-                }
-            }
+					synchronized (currentElement) {
+						synchronized (currentElement.getNext()) {
+							if (currentElement.isDeleted()) {
+								throw new IllegalStateException("The requested element was previously deleted.");
+							}
+							Element newElement = new Element(val, currentElement, currentElement.getNext());
+							newElement.adjustNeighbors();
+							break;
+						}
+					}
+				}
+			}
 			return true;
 		}
 	}
@@ -143,28 +147,28 @@ public class FDListFine<T> {
 		}
 
 		public void next() {
-            synchronized (currentElement){
-                synchronized (currentElement.getNext()){
-                    if (curr().getNext().isTail()) {
-                        currentElement = curr().getNext().getNext();
-                    } else {
-                        currentElement = curr().getNext();
-                    }
-                }
-            }
+			synchronized (currentElement) {
+				synchronized (currentElement.getNext()) {
+					if (curr().getNext().isTail()) {
+						currentElement = curr().getNext().getNext();
+					} else {
+						currentElement = curr().getNext();
+					}
+				}
+			}
 		}
 
 		public void prev() {
-            synchronized (currentElement){
-                synchronized (currentElement.getPrev()){
-                    if (curr().getPrev().isTail()) {
-                        currentElement = curr().getPrev().getPrev();
-                    } else {
-                        currentElement = curr().getPrev();
-                    }
-                }
-            }
-        }
+			synchronized (currentElement) {
+				synchronized (currentElement.getPrev()) {
+					if (curr().getPrev().isTail()) {
+						currentElement = curr().getPrev().getPrev();
+					} else {
+						currentElement = curr().getPrev();
+					}
+				}
+			}
+		}
 
 		public Writer writer() {
 			return new Writer(this);
@@ -195,17 +199,17 @@ public class FDListFine<T> {
 			return false;
 		}
 
-        public boolean isHead(){
-            return false;
-        }
+		public boolean isHead() {
+			return false;
+		}
 
 		private void adjustNeighbors() {
-            prev.get().setNext(this);
-            next.get().setPrev(this);
+			prev.get().setNext(this);
+			next.get().setPrev(this);
 		}
 
 		private Element getNext() {
-                return next.get();
+			return next.get();
 		}
 
 		private void setNext(Element next) {
@@ -213,7 +217,7 @@ public class FDListFine<T> {
 		}
 
 		private Element getPrev() {
-            return prev.get();
+			return prev.get();
 		}
 
 		private void setPrev(Element prev) {
@@ -225,15 +229,15 @@ public class FDListFine<T> {
 		}
 
 		private boolean delete() throws IllegalStateException {
-            if (getNext().isTail() && getPrev().isTail()) {
-                throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
-            }
-            if(isHead() || isTail()){
-                throw new IllegalStateException("delete() operation tried to delete head or tail element from list.");
-            }
-            deleted = true; // invalidates cursors pointing here
-            prev.get().setNext(next.get());
-            next.get().setPrev(prev.get());
+			if (getNext().isTail() && getPrev().isTail()) {
+				throw new IllegalStateException("delete() operation tried to delete element from list of size one.");
+			}
+			if (isHead() || isTail()) {
+				throw new IllegalStateException("delete() operation tried to delete head or tail element from list.");
+			}
+			deleted = true; // invalidates cursors pointing here
+			prev.get().setNext(next.get());
+			next.get().setPrev(prev.get());
 			return deleted;
 		}
 
@@ -253,14 +257,14 @@ public class FDListFine<T> {
 		}
 	}
 
-    public class Head extends Element{
+	public class Head extends Element {
 
-        public Head(T value) {
-            super(value);
-        }
+		public Head(T value) {
+			super(value);
+		}
 
-        public boolean isHead(){
-            return true;
-        }
-    }
+		public boolean isHead() {
+			return true;
+		}
+	}
 }
