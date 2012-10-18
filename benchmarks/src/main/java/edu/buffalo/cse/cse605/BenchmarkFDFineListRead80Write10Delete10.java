@@ -60,30 +60,38 @@ public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
 		FDListFine<Double>.Cursor reader = cursors[threadNumber];
 		boolean add = true;
 
+		long reads = 0;
+		long writes = 0;
+		long deletes = 0;
+
 		while (running && !Thread.currentThread().isInterrupted()) {
 			double decision = BenchmarkDriver.getRandomDouble(10);
 			if(decision < 8)
 			{
 				Double value = reader.curr().value();
 				reader.next();
-				readCount.incrementAndGet();
+				reads++;
 			} else if(decision < 8.5)
 			{
 				reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
 				reader.next();
-				writeCount.incrementAndGet();
+				writes++;
 			} else if(decision < 9.0)
 			{
 				reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
 				reader.next();
-				writeCount.incrementAndGet();
+				writes++;
 			} else
 			{
 				reader.writer().delete();
 				reader.next();
-				deleteCount.incrementAndGet();
+				deletes++;
 			}
 		}
+
+		readCount.addAndGet(reads);
+		writeCount.addAndGet(writes);
+		deleteCount.addAndGet(deletes);
 	}
 
 }

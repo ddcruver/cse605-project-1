@@ -62,10 +62,14 @@ public class BenchmarkFDCoarseReadOnly extends BaseBenchmark
 		FDCoarse<Double>.Cursor reader = cursors[threadNumber];
 		boolean add = true;
 
+		long reads = 0;
+
 		while (running && !Thread.currentThread().isInterrupted()) {
 			Double value = reader.curr().value();
 			reader.next();
-			readCount.incrementAndGet();
+			reads++;
 		}
+
+		readCount.addAndGet(reads);
 	}
 }

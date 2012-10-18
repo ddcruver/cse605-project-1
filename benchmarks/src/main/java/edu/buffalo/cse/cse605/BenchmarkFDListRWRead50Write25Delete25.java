@@ -60,6 +60,10 @@ public class BenchmarkFDListRWRead50Write25Delete25 extends BaseBenchmark
 		FDListRW<Double>.Cursor reader = cursors[threadNumber];
 		boolean add = true;
 
+		long reads = 0;
+		long writes = 0;
+		long deletes = 0;
+
 		while (running && !Thread.currentThread().isInterrupted()) {
 			double decision = BenchmarkDriver.getRandomDouble(10);
 			if(decision < 5.0)
@@ -84,6 +88,10 @@ public class BenchmarkFDListRWRead50Write25Delete25 extends BaseBenchmark
 				deleteCount.incrementAndGet();
 			}
 		}
+
+		readCount.addAndGet(reads);
+		writeCount.addAndGet(writes);
+		deleteCount.addAndGet(deletes);
 	}
 
 }

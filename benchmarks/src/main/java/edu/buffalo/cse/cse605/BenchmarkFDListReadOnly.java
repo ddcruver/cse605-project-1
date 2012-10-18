@@ -60,10 +60,14 @@ public class BenchmarkFDListReadOnly extends BaseBenchmark
 		FDList<Double>.Cursor reader = cursors[threadNumber];
 		boolean add = true;
 
+		long reads = 0;
+
 		while (running && !Thread.currentThread().isInterrupted()) {
 			Double value = reader.curr().value();
 			reader.next();
 			readCount.incrementAndGet();
 		}
+
+		readCount.addAndGet(reads);
 	}
 }
