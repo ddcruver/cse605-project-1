@@ -71,6 +71,8 @@ public class BenchmarkFDListRWRead80Write10Delete10 extends BaseBenchmark
         long errors = 0;
 
 		while (running && !Thread.currentThread().isInterrupted()) {
+            try
+            {
 			double decision = BenchmarkDriver.getRandomDouble(10);
 			if(decision < 8)
 			{
@@ -92,12 +94,17 @@ public class BenchmarkFDListRWRead80Write10Delete10 extends BaseBenchmark
 				reader.writer().delete();
 				reader.next();
 				deleteCount.incrementAndGet();
-			}
+			}              } catch (Exception e)
+            {
+                //LOG.error("Test encountered error", e);
+                errors++;
+            }
 		}
 
 		readCount.addAndGet(reads);
 		writeCount.addAndGet(writes);
 		deleteCount.addAndGet(deletes);
+        errorCount.addAndGet(errors);
 	}
 
     @Override

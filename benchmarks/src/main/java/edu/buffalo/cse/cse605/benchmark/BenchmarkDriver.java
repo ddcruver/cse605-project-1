@@ -50,6 +50,7 @@ public class BenchmarkDriver
         long totalReads = 0;
         long totalWrites = 0;
         long totalDeletes = 0;
+        long totalErrors = 0;
 
         long skipFirst = 1;
 
@@ -60,6 +61,7 @@ public class BenchmarkDriver
                 totalReads += result.getReads();
                 totalWrites += result.getWrites();
                 totalDeletes += result.getDeletes();
+                totalErrors += result.getErrors();
                 averageCounts++;
             }
             iteration++;
@@ -73,6 +75,8 @@ public class BenchmarkDriver
         normalizedOut.write(Long.toString(totalWrites / averageCounts));
         normalizedOut.write(",");
         normalizedOut.write(Long.toString(totalDeletes / averageCounts));
+        normalizedOut.write(",");
+        normalizedOut.write(Long.toString(totalErrors / averageCounts));
         normalizedOut.write("\n");
         normalizedOut.flush();
     }

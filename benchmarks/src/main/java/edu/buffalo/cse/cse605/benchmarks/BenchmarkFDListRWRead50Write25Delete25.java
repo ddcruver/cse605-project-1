@@ -72,33 +72,41 @@ public class BenchmarkFDListRWRead50Write25Delete25 extends BaseBenchmark
 
         while (running && !Thread.currentThread().isInterrupted())
         {
-            double decision = BenchmarkDriver.getRandomDouble(10);
-            if (decision < 5.0)
+            try
             {
-                Double value = reader.curr().value();
-                reader.next();
-                readCount.incrementAndGet();
-            } else if (decision < 6.5)
+                double decision = BenchmarkDriver.getRandomDouble(10);
+                if (decision < 5.0)
+                {
+                    Double value = reader.curr().value();
+                    reader.next();
+                    readCount.incrementAndGet();
+                } else if (decision < 6.5)
+                {
+                    reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
+                    reader.next();
+                    writeCount.incrementAndGet();
+                } else if (decision < 7.5)
+                {
+                    reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
+                    reader.next();
+                    writeCount.incrementAndGet();
+                } else
+                {
+                    reader.writer().delete();
+                    reader.next();
+                    deleteCount.incrementAndGet();
+                }
+            } catch (Exception e)
             {
-                reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
-                reader.next();
-                writeCount.incrementAndGet();
-            } else if (decision < 7.5)
-            {
-                reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
-                reader.next();
-                writeCount.incrementAndGet();
-            } else
-            {
-                reader.writer().delete();
-                reader.next();
-                deleteCount.incrementAndGet();
+                //LOG.error("Test encountered error", e);
+                errors++;
             }
         }
 
         readCount.addAndGet(reads);
         writeCount.addAndGet(writes);
         deleteCount.addAndGet(deletes);
+        errorCount.addAndGet(errors);
     }
 
     @Override

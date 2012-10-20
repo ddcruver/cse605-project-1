@@ -71,33 +71,41 @@ public class BenchmarkFDListRead50Write25Delete25 extends BaseBenchmark
 
         while (running && !Thread.currentThread().isInterrupted())
         {
-            double decision = BenchmarkDriver.getRandomDouble(10);
-            if (decision < 5.0)
+            try
             {
-                Double value = reader.curr().value();
-                reader.next();
-                reads++;
-            } else if (decision < 6.5)
+                double decision = BenchmarkDriver.getRandomDouble(10);
+                if (decision < 5.0)
+                {
+                    Double value = reader.curr().value();
+                    reader.next();
+                    reads++;
+                } else if (decision < 6.5)
+                {
+                    reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
+                    reader.next();
+                    writes++;
+                } else if (decision < 7.5)
+                {
+                    reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
+                    reader.next();
+                    writes++;
+                } else
+                {
+                    reader.writer().delete();
+                    reader.next();
+                    deletes++;
+                }
+            } catch (Exception e)
             {
-                reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
-                reader.next();
-                writes++;
-            } else if (decision < 7.5)
-            {
-                reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
-                reader.next();
-                writes++;
-            } else
-            {
-                reader.writer().delete();
-                reader.next();
-                deletes++;
+                //LOG.error("Test encountered error", e);
+                errors++;
             }
         }
 
         readCount.addAndGet(reads);
         writeCount.addAndGet(writes);
         deleteCount.addAndGet(deletes);
+        errorCount.addAndGet(errors);
     }
 
     @Override
