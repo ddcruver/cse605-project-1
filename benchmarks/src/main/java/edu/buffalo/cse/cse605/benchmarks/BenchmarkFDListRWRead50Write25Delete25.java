@@ -74,6 +74,9 @@ public class BenchmarkFDListRWRead50Write25Delete25 extends BaseBenchmark
         {
             try
             {
+                while(reader.curr().isDeleted())
+                    reader.next();
+
                 double decision = BenchmarkDriver.getRandomDouble(10);
                 if (decision < 5.0)
                 {

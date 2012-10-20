@@ -74,6 +74,9 @@ public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
 
             try
             {
+                while(reader.curr().isDeleted())
+                    reader.next();
+
                 double decision = BenchmarkDriver.getRandomDouble(10);
                 if (decision < 8)
                 {
