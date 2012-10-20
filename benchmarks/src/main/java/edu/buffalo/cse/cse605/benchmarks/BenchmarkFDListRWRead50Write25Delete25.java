@@ -14,89 +14,92 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class BenchmarkFDListRWRead50Write25Delete25 extends BaseBenchmark
 {
-	private FDListRW<Double> list;
+    private FDListRW<Double> list;
 
-	private FDListRW<Double>.Cursor cursors[];
+    private FDListRW<Double>.Cursor cursors[];
 
-	public BenchmarkFDListRWRead50Write25Delete25(int threads, long initialListSize)
-	{
-		super(threads, initialListSize);
-		cursors = new FDListRW.Cursor[threads];
-	}
+    public BenchmarkFDListRWRead50Write25Delete25(int threads, long initialListSize)
+    {
+        super(threads, initialListSize);
+        cursors = new FDListRW.Cursor[threads];
+    }
 
-	@Override
-	public void initRun() throws InterruptedException
-	{
-		running = Boolean.TRUE;
-		readCount = new AtomicLong(0);
-		writeCount = new AtomicLong(0);
-		deleteCount = new AtomicLong(0);
+    @Override
+    public void initRun() throws InterruptedException
+    {
+        running = Boolean.TRUE;
+        readCount = new AtomicLong(0);
+        writeCount = new AtomicLong(0);
+        deleteCount = new AtomicLong(0);
+        errorCount = new AtomicLong(0);
 
-		list = new FDListRW<Double>(0.0);
+        list = new FDListRW<Double>(0.0);
 
-		FDListRW<Double>.Cursor reader = list.reader(list.head());
+        FDListRW<Double>.Cursor reader = list.reader(list.head());
 
-		for(int i = 0; i < initialListSize; i++)
-		{
-			reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
-			reader.next();
-		}
-	}
+        for (int i = 0; i < initialListSize; i++)
+        {
+            reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
+            reader.next();
+        }
+    }
 
-	@Override
-	public void initThread(int threadNumber) throws InterruptedException
-	{
-		FDListRW<Double>.Cursor reader = list.reader(list.head());
+    @Override
+    public void initThread(int threadNumber) throws InterruptedException
+    {
+        FDListRW<Double>.Cursor reader = list.reader(list.head());
 
-		long skips = BenchmarkDriver.getRandomDouble(initialListSize).longValue();
-		for(int s = 0; s < skips; s++)
-		{
-			reader.next();
-		}
+        long skips = BenchmarkDriver.getRandomDouble(initialListSize).longValue();
+        for (int s = 0; s < skips; s++)
+        {
+            reader.next();
+        }
 
-		cursors[threadNumber] = reader;
-	}
+        cursors[threadNumber] = reader;
+    }
 
-	@Override
-	public void run(int threadNumber) throws InterruptedException
-	{
-		// Get this threads cursor
-		FDListRW<Double>.Cursor reader = cursors[threadNumber];
-		boolean add = true;
+    @Override
+    public void run(int threadNumber) throws InterruptedException
+    {
+        // Get this threads cursor
+        FDListRW<Double>.Cursor reader = cursors[threadNumber];
+        boolean add = true;
 
-		long reads = 0;
-		long writes = 0;
-		long deletes = 0;
+        long reads = 0;
+        long writes = 0;
+        long deletes = 0;
+        long errors = 0;
 
-		while (running && !Thread.currentThread().isInterrupted()) {
-			double decision = BenchmarkDriver.getRandomDouble(10);
-			if(decision < 5.0)
-			{
-				Double value = reader.curr().value();
-				reader.next();
-				readCount.incrementAndGet();
-			} else if(decision < 6.5)
-			{
-				reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
-				reader.next();
-				writeCount.incrementAndGet();
-			} else if(decision < 7.5)
-			{
-				reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
-				reader.next();
-				writeCount.incrementAndGet();
-			} else
-			{
-				reader.writer().delete();
-				reader.next();
-				deleteCount.incrementAndGet();
-			}
-		}
+        while (running && !Thread.currentThread().isInterrupted())
+        {
+            double decision = BenchmarkDriver.getRandomDouble(10);
+            if (decision < 5.0)
+            {
+                Double value = reader.curr().value();
+                reader.next();
+                readCount.incrementAndGet();
+            } else if (decision < 6.5)
+            {
+                reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
+                reader.next();
+                writeCount.incrementAndGet();
+            } else if (decision < 7.5)
+            {
+                reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
+                reader.next();
+                writeCount.incrementAndGet();
+            } else
+            {
+                reader.writer().delete();
+                reader.next();
+                deleteCount.incrementAndGet();
+            }
+        }
 
-		readCount.addAndGet(reads);
-		writeCount.addAndGet(writes);
-		deleteCount.addAndGet(deletes);
-	}
+        readCount.addAndGet(reads);
+        writeCount.addAndGet(writes);
+        deleteCount.addAndGet(deletes);
+    }
 
     @Override
     public String getTestName()

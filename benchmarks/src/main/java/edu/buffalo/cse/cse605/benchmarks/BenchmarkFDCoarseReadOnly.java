@@ -14,66 +14,67 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class BenchmarkFDCoarseReadOnly extends BaseBenchmark
 {
-	private FDCoarse<Double> list;
+    private FDCoarse<Double> list;
 
-	private FDCoarse<Double>.Cursor cursors[];
+    private FDCoarse<Double>.Cursor cursors[];
 
-	public BenchmarkFDCoarseReadOnly(int threads, long initialListSize)
-	{
-		super(threads, initialListSize);
-		cursors = new FDCoarse.Cursor[threads];
-	}
+    public BenchmarkFDCoarseReadOnly(int threads, long initialListSize)
+    {
+        super(threads, initialListSize);
+        cursors = new FDCoarse.Cursor[threads];
+    }
 
-	@Override
-	public void initRun()
-	{
-		running = Boolean.TRUE;
-		readCount = new AtomicLong(0);
-		writeCount = new AtomicLong(0);
-		deleteCount = new AtomicLong(0);
+    @Override
+    public void initRun()
+    {
+        running = Boolean.TRUE;
+        readCount = new AtomicLong(0);
+        writeCount = new AtomicLong(0);
+        deleteCount = new AtomicLong(0);
+        errorCount = new AtomicLong(0);
 
-		list = new FDCoarse<Double>(0.0);
+        list = new FDCoarse<Double>(0.0);
 
-		FDCoarse<Double>.Cursor reader = list.reader(list.head());
+        FDCoarse<Double>.Cursor reader = list.reader(list.head());
 
-		for(int i = 0; i < initialListSize; i++)
-		{
-				reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
-				reader.next();
-		}
-	}
+        for (int i = 0; i < initialListSize; i++)
+        {
+            reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
+            reader.next();
+        }
+    }
 
-	@Override
-	public void initThread(int threadNumber)
-	{
-		FDCoarse<Double>.Cursor reader = list.reader(list.head());
+    @Override
+    public void initThread(int threadNumber)
+    {
+        FDCoarse<Double>.Cursor reader = list.reader(list.head());
 
-		long skips = BenchmarkDriver.getRandomDouble(initialListSize).longValue();
-		for(int s = 0; s < skips; s++)
-		{
-			reader.next();
-		}
+        long skips = BenchmarkDriver.getRandomDouble(initialListSize).longValue();
+        for (int s = 0; s < skips; s++)
+        {
+            reader.next();
+        }
 
-		cursors[threadNumber] = reader;
-	}
+        cursors[threadNumber] = reader;
+    }
 
-	@Override
-	public void run(int threadNumber)
-	{
-		// Get this threads cursor
-		FDCoarse<Double>.Cursor reader = cursors[threadNumber];
-		boolean add = true;
+    @Override
+    public void run(int threadNumber)
+    {
+        // Get this threads cursor
+        FDCoarse<Double>.Cursor reader = cursors[threadNumber];
 
-		long reads = 0;
+        long reads = 0;
 
-		while (running && !Thread.currentThread().isInterrupted()) {
-			Double value = reader.curr().value();
-			reader.next();
-			reads++;
-		}
+        while (running && !Thread.currentThread().isInterrupted())
+        {
+            Double value = reader.curr().value();
+            reader.next();
+            reads++;
+        }
 
-		readCount.addAndGet(reads);
-	}
+        readCount.addAndGet(reads);
+    }
 
     @Override
     public String getTestName()

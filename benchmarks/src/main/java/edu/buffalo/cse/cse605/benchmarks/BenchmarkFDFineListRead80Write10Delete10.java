@@ -31,8 +31,9 @@ public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
 		readCount = new AtomicLong(0);
 		writeCount = new AtomicLong(0);
 		deleteCount = new AtomicLong(0);
+        errorCount = new AtomicLong(0);
 
-		list = new FDListFine<Double>(0.0);
+        list = new FDListFine<Double>(0.0);
 
 		FDListFine<Double>.Cursor reader = list.reader(list.head());
 
@@ -66,6 +67,7 @@ public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
 		long reads = 0;
 		long writes = 0;
 		long deletes = 0;
+        long errors = 0;
 
 		while (running && !Thread.currentThread().isInterrupted()) {
 			double decision = BenchmarkDriver.getRandomDouble(10);
@@ -95,6 +97,7 @@ public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
 		readCount.addAndGet(reads);
 		writeCount.addAndGet(writes);
 		deleteCount.addAndGet(deletes);
+        errorCount.addAndGet(errors);
 	}
 
     @Override

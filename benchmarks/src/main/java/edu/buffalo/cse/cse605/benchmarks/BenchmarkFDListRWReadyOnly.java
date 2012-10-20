@@ -14,66 +14,67 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class BenchmarkFDListRWReadyOnly extends BaseBenchmark
 {
-	private FDListRW<Double> list;
+    private FDListRW<Double> list;
 
-	private FDListRW<Double>.Cursor cursors[];
+    private FDListRW<Double>.Cursor cursors[];
 
-	public BenchmarkFDListRWReadyOnly(int threads, long initialListSize)
-	{
-		super(threads, initialListSize);
-		cursors = new FDListRW.Cursor[threads];
-	}
+    public BenchmarkFDListRWReadyOnly(int threads, long initialListSize)
+    {
+        super(threads, initialListSize);
+        cursors = new FDListRW.Cursor[threads];
+    }
 
-	@Override
-	public void initThread(int threadNumber) throws InterruptedException
-	{
-		FDListRW<Double>.Cursor reader = list.reader(list.head());
+    @Override
+    public void initThread(int threadNumber) throws InterruptedException
+    {
+        FDListRW<Double>.Cursor reader = list.reader(list.head());
 
-		long skips = BenchmarkDriver.getRandomDouble(initialListSize).longValue();
-		for(int s = 0; s < skips; s++)
-		{
-			reader.next();
-		}
+        long skips = BenchmarkDriver.getRandomDouble(initialListSize).longValue();
+        for (int s = 0; s < skips; s++)
+        {
+            reader.next();
+        }
 
-		cursors[threadNumber] = reader;
-	}
+        cursors[threadNumber] = reader;
+    }
 
-	@Override
-	public void initRun() throws InterruptedException
-	{
-		running = Boolean.TRUE;
-		readCount = new AtomicLong(0);
-		writeCount = new AtomicLong(0);
-		deleteCount = new AtomicLong(0);
+    @Override
+    public void initRun() throws InterruptedException
+    {
+        running = Boolean.TRUE;
+        readCount = new AtomicLong(0);
+        writeCount = new AtomicLong(0);
+        deleteCount = new AtomicLong(0);
+        errorCount = new AtomicLong(0);
 
-		list = new FDListRW<Double>(0.0);
+        list = new FDListRW<Double>(0.0);
 
-		FDListRW<Double>.Cursor reader = list.reader(list.head());
+        FDListRW<Double>.Cursor reader = list.reader(list.head());
 
-		for(int i = 0; i < initialListSize; i++)
-		{
-			reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
-			reader.next();
-		}
-	}
+        for (int i = 0; i < initialListSize; i++)
+        {
+            reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
+            reader.next();
+        }
+    }
 
-	@Override
-	public void run(int threadNumber) throws InterruptedException
-	{
-		// Get this threads cursor
-		FDListRW<Double>.Cursor reader = cursors[threadNumber];
-		boolean add = true;
+    @Override
+    public void run(int threadNumber) throws InterruptedException
+    {
+        // Get this threads cursor
+        FDListRW<Double>.Cursor reader = cursors[threadNumber];
 
-		long reads = 0;
+        long reads = 0;
 
-		while (running && !Thread.currentThread().isInterrupted()) {
-			Double value = reader.curr().value();
-			reader.next();
-			readCount.incrementAndGet();
-		}
+        while (running && !Thread.currentThread().isInterrupted())
+        {
+            Double value = reader.curr().value();
+            reader.next();
+            readCount.incrementAndGet();
+        }
 
-		readCount.addAndGet(reads);
-	}
+        readCount.addAndGet(reads);
+    }
 
     @Override
     public String getTestName()

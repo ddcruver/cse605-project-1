@@ -71,6 +71,7 @@ public class BenchmarkFDCoarseRead80Write10Delete10 extends BaseBenchmark
         long reads = 0;
         long writes = 0;
         long deletes = 0;
+        long errors = 0;
 
         while (running && !Thread.currentThread().isInterrupted())
         {
@@ -97,13 +98,15 @@ public class BenchmarkFDCoarseRead80Write10Delete10 extends BaseBenchmark
                 }
             } catch (Exception e)
             {
-              LOG.error("Test encountered error", e);
+                //LOG.error("Test encountered error", e);
+                errors++;
             }
         }
 
         readCount.addAndGet(reads);
         writeCount.addAndGet(writes);
         deleteCount.addAndGet(deletes);
+        errorCount.addAndGet(errors);
     }
 
     @Override
