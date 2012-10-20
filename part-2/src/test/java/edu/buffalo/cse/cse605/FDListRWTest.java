@@ -49,8 +49,9 @@ public class FDListRWTest {
 		log.info("Done checking results.");
 	}
 
-	private void testResults(FDListRW<Double> list, int listSize) throws InterruptedException {
-		FDListRW.Element head = list.head();
+	private void testResults(FDListRW<Double> list, int listSize) throws InterruptedException
+    {
+		FDListRW<Double>.Element head = list.head();
 		FDListRW<Double>.Cursor reader = list.reader(list.head());
 
 		reader.next();

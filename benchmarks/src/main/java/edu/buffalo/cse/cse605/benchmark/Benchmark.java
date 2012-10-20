@@ -1,4 +1,4 @@
-package edu.buffalo.cse.cse605;
+package edu.buffalo.cse.cse605.benchmark;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,6 +22,7 @@ public interface Benchmark
 	public AtomicLong getReadAtomicCount();
 	public AtomicLong getWriteAtomicCount();
 	public AtomicLong getDeleteAtomicCount();
+    public AtomicLong getErrorAtomicCount();
 
 	public String getTestName();
 }

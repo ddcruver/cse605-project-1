@@ -1,4 +1,8 @@
-package edu.buffalo.cse.cse605;
+package edu.buffalo.cse.cse605.benchmarks;
+
+import edu.buffalo.cse.cse605.benchmark.BaseBenchmark;
+import edu.buffalo.cse.cse605.benchmark.BenchmarkDriver;
+import edu.buffalo.cse.cse605.FDListRW;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -8,29 +12,29 @@ import java.util.concurrent.atomic.AtomicLong;
  * Date: 9/21/12
  * Time: 10:16 AM
  */
-public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
+public class BenchmarkFDListRWRead50Write25Delete25 extends BaseBenchmark
 {
-	private FDListFine<Double> list;
+	private FDListRW<Double> list;
 
-	private FDListFine<Double>.Cursor cursors[];
+	private FDListRW<Double>.Cursor cursors[];
 
-	public BenchmarkFDFineListRead80Write10Delete10(int threads, long initialListSize)
+	public BenchmarkFDListRWRead50Write25Delete25(int threads, long initialListSize)
 	{
-		super(BenchmarkFDFineListRead80Write10Delete10.class.getSimpleName(), threads, initialListSize);
-		cursors = new FDListFine.Cursor[threads];
+		super(threads, initialListSize);
+		cursors = new FDListRW.Cursor[threads];
 	}
 
 	@Override
-	public void initRun()
+	public void initRun() throws InterruptedException
 	{
 		running = Boolean.TRUE;
 		readCount = new AtomicLong(0);
 		writeCount = new AtomicLong(0);
 		deleteCount = new AtomicLong(0);
 
-		list = new FDListFine<Double>(0.0);
+		list = new FDListRW<Double>(0.0);
 
-		FDListFine<Double>.Cursor reader = list.reader(list.head());
+		FDListRW<Double>.Cursor reader = list.reader(list.head());
 
 		for(int i = 0; i < initialListSize; i++)
 		{
@@ -40,9 +44,9 @@ public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
 	}
 
 	@Override
-	public void initThread(int threadNumber)
+	public void initThread(int threadNumber) throws InterruptedException
 	{
-		FDListFine<Double>.Cursor reader = list.reader(list.head());
+		FDListRW<Double>.Cursor reader = list.reader(list.head());
 
 		long skips = BenchmarkDriver.getRandomDouble(initialListSize).longValue();
 		for(int s = 0; s < skips; s++)
@@ -54,10 +58,10 @@ public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
 	}
 
 	@Override
-	public void run(int threadNumber)
+	public void run(int threadNumber) throws InterruptedException
 	{
 		// Get this threads cursor
-		FDListFine<Double>.Cursor reader = cursors[threadNumber];
+		FDListRW<Double>.Cursor reader = cursors[threadNumber];
 		boolean add = true;
 
 		long reads = 0;
@@ -66,26 +70,26 @@ public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
 
 		while (running && !Thread.currentThread().isInterrupted()) {
 			double decision = BenchmarkDriver.getRandomDouble(10);
-			if(decision < 8)
+			if(decision < 5.0)
 			{
 				Double value = reader.curr().value();
 				reader.next();
-				reads++;
-			} else if(decision < 8.5)
+				readCount.incrementAndGet();
+			} else if(decision < 6.5)
 			{
 				reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
 				reader.next();
-				writes++;
-			} else if(decision < 9.0)
+				writeCount.incrementAndGet();
+			} else if(decision < 7.5)
 			{
 				reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
 				reader.next();
-				writes++;
+				writeCount.incrementAndGet();
 			} else
 			{
 				reader.writer().delete();
 				reader.next();
-				deletes++;
+				deleteCount.incrementAndGet();
 			}
 		}
 
@@ -93,5 +97,11 @@ public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
 		writeCount.addAndGet(writes);
 		deleteCount.addAndGet(deletes);
 	}
+
+    @Override
+    public String getTestName()
+    {
+        return "FDListRW 50% Reads 25% Writes 25% Deletes";
+    }
 
 }

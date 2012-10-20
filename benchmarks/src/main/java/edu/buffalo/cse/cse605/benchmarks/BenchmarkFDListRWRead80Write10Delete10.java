@@ -1,4 +1,8 @@
-package edu.buffalo.cse.cse605;
+package edu.buffalo.cse.cse605.benchmarks;
+
+import edu.buffalo.cse.cse605.benchmark.BaseBenchmark;
+import edu.buffalo.cse.cse605.benchmark.BenchmarkDriver;
+import edu.buffalo.cse.cse605.FDListRW;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -16,7 +20,7 @@ public class BenchmarkFDListRWRead80Write10Delete10 extends BaseBenchmark
 
 	public BenchmarkFDListRWRead80Write10Delete10(int threads, long initialListSize)
 	{
-		super(BenchmarkFDListRWRead80Write10Delete10.class.getSimpleName(), threads, initialListSize);
+		super(threads, initialListSize);
 		cursors = new FDListRW.Cursor[threads];
 	}
 
@@ -93,5 +97,11 @@ public class BenchmarkFDListRWRead80Write10Delete10 extends BaseBenchmark
 		writeCount.addAndGet(writes);
 		deleteCount.addAndGet(deletes);
 	}
+
+    @Override
+    public String getTestName()
+    {
+        return "FDListRW 80% Reads 10% Writes 10% Deletes";
+    }
 
 }

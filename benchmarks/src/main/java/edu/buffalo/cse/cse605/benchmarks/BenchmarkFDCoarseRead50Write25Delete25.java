@@ -1,7 +1,8 @@
-package edu.buffalo.cse.cse605;
+package edu.buffalo.cse.cse605.benchmarks;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import edu.buffalo.cse.cse605.benchmark.BaseBenchmark;
+import edu.buffalo.cse.cse605.benchmark.BenchmarkDriver;
+import edu.buffalo.cse.cse605.FDCoarse;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -11,15 +12,15 @@ import java.util.concurrent.atomic.AtomicLong;
  * Date: 9/21/12
  * Time: 10:16 AM
  */
-public class BenchmarkFDCoarseRead80Write10Delete10 extends BaseBenchmark
+public class BenchmarkFDCoarseRead50Write25Delete25 extends BaseBenchmark
 {
 	private FDCoarse<Double> list;
 
 	private FDCoarse<Double>.Cursor cursors[];
 
-	public BenchmarkFDCoarseRead80Write10Delete10(int threads, long initialListSize)
+	public BenchmarkFDCoarseRead50Write25Delete25(int threads, long initialListSize)
 	{
-		super(BenchmarkFDCoarseRead80Write10Delete10.class.getSimpleName(), threads, initialListSize);
+		super(threads, initialListSize);
 		cursors = new FDCoarse.Cursor[threads];
 	}
 
@@ -61,7 +62,6 @@ public class BenchmarkFDCoarseRead80Write10Delete10 extends BaseBenchmark
 	{
 		// Get this threads cursor
 		FDCoarse<Double>.Cursor reader = cursors[threadNumber];
-		boolean add = true;
 
 		long reads = 0;
 		long writes = 0;
@@ -69,17 +69,17 @@ public class BenchmarkFDCoarseRead80Write10Delete10 extends BaseBenchmark
 
 		while (running && !Thread.currentThread().isInterrupted()) {
 			double decision = BenchmarkDriver.getRandomDouble(10);
-			if(decision < 8)
+			if(decision < 5.0)
 			{
 				Double value = reader.curr().value();
 				reader.next();
 				reads++;
-			} else if(decision < 8.5)
+			} else if(decision < 6.5)
 			{
 				reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
 				reader.next();
 				writes++;
-			} else if(decision < 9.0)
+			} else if(decision < 7.5)
 			{
 				reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
 				reader.next();
@@ -96,5 +96,11 @@ public class BenchmarkFDCoarseRead80Write10Delete10 extends BaseBenchmark
 		writeCount.addAndGet(writes);
 		deleteCount.addAndGet(deletes);
 	}
+
+    @Override
+    public String getTestName()
+    {
+        return "FDCoarse 50% Reads 25% Writes 25% Deletes";
+    }
 
 }

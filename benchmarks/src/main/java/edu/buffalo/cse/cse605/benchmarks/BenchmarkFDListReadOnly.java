@@ -1,4 +1,8 @@
-package edu.buffalo.cse.cse605;
+package edu.buffalo.cse.cse605.benchmarks;
+
+import edu.buffalo.cse.cse605.benchmark.BaseBenchmark;
+import edu.buffalo.cse.cse605.benchmark.BenchmarkDriver;
+import edu.buffalo.cse.cse605.FDList;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -16,7 +20,7 @@ public class BenchmarkFDListReadOnly extends BaseBenchmark
 
 	public BenchmarkFDListReadOnly(int threads, long initialListSize)
 	{
-		super(BenchmarkFDListReadOnly.class.getSimpleName(), threads, initialListSize);
+		super(threads, initialListSize);
 		cursors = new FDList.Cursor[threads];
 	}
 
@@ -70,4 +74,10 @@ public class BenchmarkFDListReadOnly extends BaseBenchmark
 
 		readCount.addAndGet(reads);
 	}
+
+    @Override
+    public String getTestName()
+    {
+        return "FDList 100% Reads";
+    }
 }

@@ -1,4 +1,6 @@
-package edu.buffalo.cse.cse605;
+package edu.buffalo.cse.cse605.benchmark;
+
+import edu.buffalo.cse.cse605.benchmark.Benchmark;
 
 /**
  * Created with IntelliJ IDEA.

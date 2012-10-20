@@ -1,7 +1,9 @@
-package edu.buffalo.cse.cse605;
+package edu.buffalo.cse.cse605.benchmarks;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import edu.buffalo.cse.cse605.benchmark.BaseBenchmark;
+import edu.buffalo.cse.cse605.benchmark.BenchmarkDriver;
+import edu.buffalo.cse.cse605.FDCoarse;
+
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -18,7 +20,7 @@ public class BenchmarkFDCoarseReadOnly extends BaseBenchmark
 
 	public BenchmarkFDCoarseReadOnly(int threads, long initialListSize)
 	{
-		super(BenchmarkFDCoarseReadOnly.class.getSimpleName(), threads, initialListSize);
+		super(threads, initialListSize);
 		cursors = new FDCoarse.Cursor[threads];
 	}
 
@@ -72,4 +74,10 @@ public class BenchmarkFDCoarseReadOnly extends BaseBenchmark
 
 		readCount.addAndGet(reads);
 	}
+
+    @Override
+    public String getTestName()
+    {
+        return "FDCoarse 100% Reads";
+    }
 }

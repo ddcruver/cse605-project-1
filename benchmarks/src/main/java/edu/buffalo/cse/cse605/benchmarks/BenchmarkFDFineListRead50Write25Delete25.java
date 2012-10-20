@@ -1,4 +1,8 @@
-package edu.buffalo.cse.cse605;
+package edu.buffalo.cse.cse605.benchmarks;
+
+import edu.buffalo.cse.cse605.benchmark.BaseBenchmark;
+import edu.buffalo.cse.cse605.benchmark.BenchmarkDriver;
+import edu.buffalo.cse.cse605.FDListFine;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -8,16 +12,16 @@ import java.util.concurrent.atomic.AtomicLong;
  * Date: 9/21/12
  * Time: 10:16 AM
  */
-public class BenchmarkFDCoarseRead50Write25Delete25 extends BaseBenchmark
+public class BenchmarkFDFineListRead50Write25Delete25 extends BaseBenchmark
 {
-	private FDCoarse<Double> list;
+	private FDListFine<Double> list;
 
-	private FDCoarse<Double>.Cursor cursors[];
+	private FDListFine<Double>.Cursor cursors[];
 
-	public BenchmarkFDCoarseRead50Write25Delete25(int threads, long initialListSize)
+	public BenchmarkFDFineListRead50Write25Delete25(int threads, long initialListSize)
 	{
-		super(BenchmarkFDCoarseRead50Write25Delete25.class.getSimpleName(), threads, initialListSize);
-		cursors = new FDCoarse.Cursor[threads];
+		super(threads, initialListSize);
+		cursors = new FDListFine.Cursor[threads];
 	}
 
 	@Override
@@ -28,9 +32,9 @@ public class BenchmarkFDCoarseRead50Write25Delete25 extends BaseBenchmark
 		writeCount = new AtomicLong(0);
 		deleteCount = new AtomicLong(0);
 
-		list = new FDCoarse<Double>(0.0);
+		list = new FDListFine<Double>(0.0);
 
-		FDCoarse<Double>.Cursor reader = list.reader(list.head());
+		FDListFine<Double>.Cursor reader = list.reader(list.head());
 
 		for(int i = 0; i < initialListSize; i++)
 		{
@@ -42,7 +46,7 @@ public class BenchmarkFDCoarseRead50Write25Delete25 extends BaseBenchmark
 	@Override
 	public void initThread(int threadNumber)
 	{
-		FDCoarse<Double>.Cursor reader = list.reader(list.head());
+		FDListFine<Double>.Cursor reader = list.reader(list.head());
 
 		long skips = BenchmarkDriver.getRandomDouble(initialListSize).longValue();
 		for(int s = 0; s < skips; s++)
@@ -57,7 +61,7 @@ public class BenchmarkFDCoarseRead50Write25Delete25 extends BaseBenchmark
 	public void run(int threadNumber)
 	{
 		// Get this threads cursor
-		FDCoarse<Double>.Cursor reader = cursors[threadNumber];
+		FDListFine<Double>.Cursor reader = cursors[threadNumber];
 		boolean add = true;
 
 		long reads = 0;
@@ -93,5 +97,11 @@ public class BenchmarkFDCoarseRead50Write25Delete25 extends BaseBenchmark
 		writeCount.addAndGet(writes);
 		deleteCount.addAndGet(deletes);
 	}
+
+    @Override
+    public String getTestName()
+    {
+        return "FDListFine 50% Reads 25% Writes 25% Deletes";
+    }
 
 }

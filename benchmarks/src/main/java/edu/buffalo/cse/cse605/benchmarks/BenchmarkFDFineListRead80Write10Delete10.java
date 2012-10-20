@@ -1,4 +1,8 @@
-package edu.buffalo.cse.cse605;
+package edu.buffalo.cse.cse605.benchmarks;
+
+import edu.buffalo.cse.cse605.benchmark.BaseBenchmark;
+import edu.buffalo.cse.cse605.benchmark.BenchmarkDriver;
+import edu.buffalo.cse.cse605.FDListFine;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -8,15 +12,15 @@ import java.util.concurrent.atomic.AtomicLong;
  * Date: 9/21/12
  * Time: 10:16 AM
  */
-public class BenchmarkFDFineListRead50Write25Delete25 extends BaseBenchmark
+public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
 {
 	private FDListFine<Double> list;
 
 	private FDListFine<Double>.Cursor cursors[];
 
-	public BenchmarkFDFineListRead50Write25Delete25(int threads, long initialListSize)
+	public BenchmarkFDFineListRead80Write10Delete10(int threads, long initialListSize)
 	{
-		super(BenchmarkFDFineListRead50Write25Delete25.class.getSimpleName(), threads, initialListSize);
+		super(threads, initialListSize);
 		cursors = new FDListFine.Cursor[threads];
 	}
 
@@ -58,7 +62,6 @@ public class BenchmarkFDFineListRead50Write25Delete25 extends BaseBenchmark
 	{
 		// Get this threads cursor
 		FDListFine<Double>.Cursor reader = cursors[threadNumber];
-		boolean add = true;
 
 		long reads = 0;
 		long writes = 0;
@@ -66,17 +69,17 @@ public class BenchmarkFDFineListRead50Write25Delete25 extends BaseBenchmark
 
 		while (running && !Thread.currentThread().isInterrupted()) {
 			double decision = BenchmarkDriver.getRandomDouble(10);
-			if(decision < 5.0)
+			if(decision < 8)
 			{
 				Double value = reader.curr().value();
 				reader.next();
 				reads++;
-			} else if(decision < 6.5)
+			} else if(decision < 8.5)
 			{
 				reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
 				reader.next();
 				writes++;
-			} else if(decision < 7.5)
+			} else if(decision < 9.0)
 			{
 				reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
 				reader.next();
@@ -93,5 +96,11 @@ public class BenchmarkFDFineListRead50Write25Delete25 extends BaseBenchmark
 		writeCount.addAndGet(writes);
 		deleteCount.addAndGet(deletes);
 	}
+
+    @Override
+    public String getTestName()
+    {
+        return "FDListFine 80% Reads 10% Writes 10% Deletes";
+    }
 
 }
