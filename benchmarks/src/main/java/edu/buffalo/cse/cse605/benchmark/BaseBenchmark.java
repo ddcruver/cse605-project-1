@@ -1,10 +1,8 @@
-package edu.buffalo.cse.cse605;
+package edu.buffalo.cse.cse605.benchmark;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -19,16 +17,15 @@ public abstract class BaseBenchmark implements Benchmark
 	protected AtomicLong readCount;
 	protected AtomicLong writeCount;
 	protected AtomicLong deleteCount;
+    protected AtomicLong errorCount;
 
-	protected final String testName;
 	protected final int threads;
 	protected final long initialListSize;
 
 	protected volatile boolean running;
 
-	public BaseBenchmark(String testName, int threadCount, long initialListSize)
+	public BaseBenchmark(int threadCount, long initialListSize)
 	{
-		this.testName = testName;
 		this.threads = threadCount;
 		this.initialListSize =  initialListSize;
 	}
@@ -63,9 +60,9 @@ public abstract class BaseBenchmark implements Benchmark
 		return deleteCount;
 	}
 
-	@Override
-	public String getTestName()
-	{
-		return testName;
-	}
+    @Override
+    public AtomicLong getErrorAtomicCount()
+    {
+        return errorCount;
+    }
 }
