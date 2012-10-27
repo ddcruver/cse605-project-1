@@ -73,10 +73,10 @@ public class BenchmarkFDListRead50Write25Delete25 extends BaseBenchmark
         {
             try
             {
-                while(reader.curr().isDeleted())
-                    reader.next();
+	            if(reader.curr().isDeleted())
+		            reader = list.reader(list.head());
 
-                double decision = BenchmarkDriver.getRandomDouble(10);
+	            double decision = BenchmarkDriver.getRandomDouble(10);
                 if (decision < 5.0)
                 {
                     Double value = reader.curr().value();
