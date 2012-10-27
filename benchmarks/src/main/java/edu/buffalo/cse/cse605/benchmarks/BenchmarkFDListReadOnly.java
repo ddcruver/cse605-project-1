@@ -70,7 +70,7 @@ public class BenchmarkFDListReadOnly extends BaseBenchmark
         {
             Double value = reader.curr().value();
             reader.next();
-            readCount.incrementAndGet();
+            reads++;
         }
 
         readCount.addAndGet(reads);

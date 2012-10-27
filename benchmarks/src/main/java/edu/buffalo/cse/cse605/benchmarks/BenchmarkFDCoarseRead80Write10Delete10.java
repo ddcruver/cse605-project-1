@@ -84,18 +84,22 @@ public class BenchmarkFDCoarseRead80Write10Delete10 extends BaseBenchmark
                 if (decision < 8)
                 {
                     Double value = reader.curr().value();
+	                reader.next();
                     reads++;
                 } else if (decision < 8.5)
                 {
                     reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
+	                reader.next();
                     writes++;
                 } else if (decision < 9.0)
                 {
                     reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
+	                reader.next();
                     writes++;
                 } else
                 {
                     reader.writer().delete();
+	                reader.next();
                     deletes++;
                 }
             } catch (Exception e)

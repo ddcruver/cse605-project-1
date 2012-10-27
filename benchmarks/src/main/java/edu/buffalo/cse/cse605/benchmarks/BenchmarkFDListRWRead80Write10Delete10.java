@@ -82,22 +82,22 @@ public class BenchmarkFDListRWRead80Write10Delete10 extends BaseBenchmark
                 {
                     Double value = reader.curr().value();
                     reader.next();
-                    readCount.incrementAndGet();
+                    reads++;
                 } else if (decision < 8.5)
                 {
                     reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
                     reader.next();
-                    writeCount.incrementAndGet();
+                    writes++;
                 } else if (decision < 9.0)
                 {
                     reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
                     reader.next();
-                    writeCount.incrementAndGet();
+                    writes++;
                 } else
                 {
                     reader.writer().delete();
                     reader.next();
-                    deleteCount.incrementAndGet();
+                    deletes++;
                 }
             } catch (Exception e)
             {
