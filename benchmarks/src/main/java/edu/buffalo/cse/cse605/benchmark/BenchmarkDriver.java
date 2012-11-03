@@ -333,7 +333,7 @@ public class BenchmarkDriver
 
     private BufferedWriter getRawResultWriter(String testName, int threads, int iterations, int secondsToRun, long initialListSize) throws IOException
     {
-        String filename = getBaseFileName(testName, threads, iterations, secondsToRun, initialListSize) + "-raw.out";
+        String filename = getBaseFileName(testName, threads, iterations, secondsToRun, initialListSize) + ".out-raw";
 
         // Delete existing report file if it already exists
         File file = new File(filename);
