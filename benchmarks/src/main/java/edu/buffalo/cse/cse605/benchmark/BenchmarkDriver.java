@@ -112,7 +112,7 @@ public class BenchmarkDriver
         executor.setCorePoolSize(threadPoolSize);
         executor.prestartAllCoreThreads();
 
-        warmUpThreadPool(executor, 2, 2);
+        warmUpThreadPool(executor, threadPoolSize, 2);
 
         benchmark.initRun();
 
