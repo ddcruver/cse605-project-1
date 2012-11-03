@@ -33,6 +33,9 @@ public class BenchmarkRunner
 		BenchmarkDriver driver = new BenchmarkDriver();
         driver.start("benchmarks", threads, iterations, secondsToRun, initialListSize);
 
+        Benchmark baselineReadOnly = new BenchmarkFDListReadOnly(1, initialListSize);
+        driver.runIteration(baselineReadOnly, secondsToRun * threads, iterations);
+
 		Benchmark coarseReadOnly = new BenchmarkFDCoarseReadOnly(threads, initialListSize);
 		driver.runIterations(coarseReadOnly, secondsToRun, threads, iterations);
 
@@ -42,7 +45,10 @@ public class BenchmarkRunner
 		Benchmark rwReadOnly = new BenchmarkFDListRWReadyOnly(threads, initialListSize);
 		driver.runIterations(rwReadOnly, secondsToRun, threads, iterations);
 
-		Benchmark coarse801010 = new BenchmarkFDCoarseRead80Write10Delete10(threads, initialListSize);
+        Benchmark baseline801010 = new BenchmarkFDListRead80Write10Delete10(1, initialListSize);
+        driver.runIteration(baseline801010, secondsToRun * threads, iterations);
+
+        Benchmark coarse801010 = new BenchmarkFDCoarseRead80Write10Delete10(threads, initialListSize);
 		driver.runIterations(coarse801010, secondsToRun, threads, iterations);
 
 		Benchmark fine801010 = new BenchmarkFDFineListRead80Write10Delete10(threads, initialListSize);
@@ -51,7 +57,10 @@ public class BenchmarkRunner
 		Benchmark rw801010 = new BenchmarkFDListRWRead80Write10Delete10(threads, initialListSize);
 		driver.runIterations(rw801010, secondsToRun, threads, iterations);
 
-		Benchmark coarse502525 = new BenchmarkFDCoarseRead50Write25Delete25(threads, initialListSize);
+        Benchmark baseline502525 = new BenchmarkFDListRWRead50Write25Delete25(1, initialListSize);
+        driver.runIteration(baseline502525, secondsToRun * threads, iterations);
+
+        Benchmark coarse502525 = new BenchmarkFDCoarseRead50Write25Delete25(threads, initialListSize);
 		driver.runIterations(coarse502525, secondsToRun, threads, iterations);
 
 		Benchmark fine502525 = new BenchmarkFDFineListRead50Write25Delete25(threads, initialListSize);
