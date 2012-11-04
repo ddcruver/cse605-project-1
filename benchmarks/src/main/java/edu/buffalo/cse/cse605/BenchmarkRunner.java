@@ -34,7 +34,7 @@ public class BenchmarkRunner
         driver.start("benchmarks", threads, iterations, secondsToRun, initialListSize);
 
         Benchmark baselineReadOnly = new BenchmarkFDListReadOnly(1, initialListSize);
-        driver.runIteration(baselineReadOnly, secondsToRun * threads, iterations);
+        driver.runIterations(baselineReadOnly, secondsToRun * threads, 1, iterations);
 
 		Benchmark coarseReadOnly = new BenchmarkFDCoarseReadOnly(threads, initialListSize);
 		driver.runIterations(coarseReadOnly, secondsToRun, threads, iterations);
@@ -46,7 +46,7 @@ public class BenchmarkRunner
 		driver.runIterations(rwReadOnly, secondsToRun, threads, iterations);
 
         Benchmark baseline801010 = new BenchmarkFDListRead80Write10Delete10(1, initialListSize);
-        driver.runIteration(baseline801010, secondsToRun * threads, iterations);
+        driver.runIterations(baseline801010, secondsToRun * threads, 1, iterations);
 
         Benchmark coarse801010 = new BenchmarkFDCoarseRead80Write10Delete10(threads, initialListSize);
 		driver.runIterations(coarse801010, secondsToRun, threads, iterations);
@@ -58,7 +58,7 @@ public class BenchmarkRunner
 		driver.runIterations(rw801010, secondsToRun, threads, iterations);
 
         Benchmark baseline502525 = new BenchmarkFDListRWRead50Write25Delete25(1, initialListSize);
-        driver.runIteration(baseline502525, secondsToRun * threads, iterations);
+        driver.runIterations(baseline502525, secondsToRun * threads, 1, iterations);
 
         Benchmark coarse502525 = new BenchmarkFDCoarseRead50Write25Delete25(threads, initialListSize);
 		driver.runIterations(coarse502525, secondsToRun, threads, iterations);
