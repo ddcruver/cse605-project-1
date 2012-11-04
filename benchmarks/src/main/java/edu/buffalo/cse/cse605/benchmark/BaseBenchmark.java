@@ -13,56 +13,65 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public abstract class BaseBenchmark implements Benchmark
 {
-	private static final transient Logger LOG = LoggerFactory.getLogger(BaseBenchmark.class);
-	protected AtomicLong readCount;
-	protected AtomicLong writeCount;
-	protected AtomicLong deleteCount;
+    private static final transient Logger LOG = LoggerFactory.getLogger(BaseBenchmark.class);
+    protected AtomicLong readCount;
+    protected AtomicLong writeCount;
+    protected AtomicLong deleteCount;
     protected AtomicLong errorCount;
 
-	protected final int threads;
-	protected final long initialListSize;
+    protected final int threads;
+    protected final long initialListSize;
 
-	protected volatile boolean running;
+    protected volatile boolean running;
 
-	public BaseBenchmark(int threadCount, long initialListSize)
-	{
-		this.threads = threadCount;
-		this.initialListSize =  initialListSize;
-	}
+    public BaseBenchmark(int threadCount, long initialListSize)
+    {
+        this.threads = threadCount;
+        this.initialListSize = initialListSize;
+    }
 
-	@Override
-	public boolean getRunning()
-	{
-		return running;
-	}
+    @Override
+    public boolean getRunning()
+    {
+        return running;
+    }
 
-	@Override
-	public void setRunning(boolean value)
-	{
-		running = value;
-	}
+    @Override
+    public void setRunning(boolean value)
+    {
+        running = value;
+    }
 
-	@Override
-	public AtomicLong getReadAtomicCount()
-	{
-		return readCount;
-	}
+    @Override
+    public AtomicLong getReadAtomicCount()
+    {
+        return readCount;
+    }
 
-	@Override
-	public AtomicLong getWriteAtomicCount()
-	{
-		return writeCount;
-	}
+    @Override
+    public AtomicLong getWriteAtomicCount()
+    {
+        return writeCount;
+    }
 
-	@Override
-	public AtomicLong getDeleteAtomicCount()
-	{
-		return deleteCount;
-	}
+    @Override
+    public AtomicLong getDeleteAtomicCount()
+    {
+        return deleteCount;
+    }
 
     @Override
     public AtomicLong getErrorAtomicCount()
     {
         return errorCount;
     }
+
+    protected void perOperationBusyTask() throws InterruptedException
+    {
+        for(int i = 0; i < 1000; i++)
+        {
+            Math.log10(100 * i);
+        }
+    }
+
 }
