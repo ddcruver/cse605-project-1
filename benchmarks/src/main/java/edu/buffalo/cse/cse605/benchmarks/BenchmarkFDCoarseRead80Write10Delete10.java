@@ -77,31 +77,36 @@ public class BenchmarkFDCoarseRead80Write10Delete10 extends BaseBenchmark
         {
             try
             {
-	            if(reader.curr().isDeleted())
-		            reader = list.reader(list.head());
+                perOperationBusyTask();
 
-	            double decision = BenchmarkDriver.getRandomDouble(10);
+                if (reader.curr().isDeleted())
+                    reader = list.reader(list.head());
+
+                double decision = BenchmarkDriver.getRandomDouble(10);
                 if (decision < 8)
                 {
                     Double value = reader.curr().value();
-	                reader.next();
+                    reader.next();
                     reads++;
                 } else if (decision < 8.5)
                 {
                     reader.writer().insertBefore(BenchmarkDriver.getRandomDouble());
-	                reader.next();
+                    reader.next();
                     writes++;
                 } else if (decision < 9.0)
                 {
                     reader.writer().insertAfter(BenchmarkDriver.getRandomDouble());
-	                reader.next();
+                    reader.next();
                     writes++;
                 } else
                 {
                     reader.writer().delete();
-	                reader.next();
+                    reader.next();
                     deletes++;
                 }
+            } catch (InterruptedException ex)
+            {
+                Thread.currentThread().interrupt();
             } catch (Exception e)
             {
                 //LOG.error("Test encountered error", e);
