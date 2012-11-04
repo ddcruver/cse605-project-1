@@ -57,7 +57,7 @@ public class BenchmarkRunner
 		Benchmark rw801010 = new BenchmarkFDListRWRead80Write10Delete10(threads, initialListSize);
 		driver.runIterations(rw801010, secondsToRun, threads, iterations);
 
-        Benchmark baseline502525 = new BenchmarkFDListRWRead50Write25Delete25(1, initialListSize);
+        Benchmark baseline502525 = new BenchmarkFDListRead50Write25Delete25(1, initialListSize);
         driver.runIterations(baseline502525, secondsToRun * threads, 1, iterations);
 
         Benchmark coarse502525 = new BenchmarkFDCoarseRead50Write25Delete25(threads, initialListSize);

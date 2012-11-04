@@ -81,8 +81,6 @@ public class BenchmarkDriver
         normalizedOut.flush();
     }
 
-    ;
-
     public void runIterations(final Benchmark benchmark, int secondsToRun, int threadPoolSize, int iterations) throws InterruptedException, IOException
     {
         List<BenchmarkResult> results = new ArrayList<BenchmarkResult>();
@@ -92,14 +90,14 @@ public class BenchmarkDriver
             results.add(runIteration(benchmark, secondsToRun, threadPoolSize));
         }
 
-        StringBuilder resultsStringBuiler = new StringBuilder();
+        StringBuilder resultsStringBuilder = new StringBuilder();
         for (BenchmarkResult result : results)
         {
-            resultsStringBuiler.append(result.toCsv());
-            resultsStringBuiler.append("\n");
+            resultsStringBuilder.append(result.toCsv());
+            resultsStringBuilder.append("\n");
         }
 
-        LOG.info("{} Results:\n{}", benchmark.getTestName(), resultsStringBuiler);
+        LOG.info("{} Results:\n{}", benchmark.getTestName(), resultsStringBuilder);
 
         writeResults(benchmark.getTestName(), results);
     }
