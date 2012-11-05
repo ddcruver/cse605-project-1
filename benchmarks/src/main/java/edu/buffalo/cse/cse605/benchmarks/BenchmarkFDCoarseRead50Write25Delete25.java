@@ -73,8 +73,10 @@ public class BenchmarkFDCoarseRead50Write25Delete25 extends BaseBenchmark
         {
             try
             {
-	            if(reader.curr().isDeleted())
-		            reader = list.reader(list.head());
+                perOperationBusyTask();
+
+                if (reader.curr().isDeleted())
+                    reader = list.reader(list.head());
 
                 double decision = BenchmarkDriver.getRandomDouble(10);
                 if (decision < 5.0)
@@ -98,6 +100,9 @@ public class BenchmarkFDCoarseRead50Write25Delete25 extends BaseBenchmark
                     reader.next();
                     deletes++;
                 }
+            } catch (InterruptedException ex)
+            {
+                Thread.currentThread().interrupt();
             } catch (Exception e)
             {
                 //LOG.error("Test encountered error", e);

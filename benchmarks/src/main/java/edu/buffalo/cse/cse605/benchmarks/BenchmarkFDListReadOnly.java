@@ -68,9 +68,17 @@ public class BenchmarkFDListReadOnly extends BaseBenchmark
 
         while (running && !Thread.currentThread().isInterrupted())
         {
-            Double value = reader.curr().value();
-            reader.next();
-            reads++;
+            try
+            {
+                perOperationBusyTask();
+
+                Double value = reader.curr().value();
+                reader.next();
+                reads++;
+            } catch (InterruptedException ex)
+            {
+                Thread.currentThread().interrupt();
+            }
         }
 
         readCount.addAndGet(reads);

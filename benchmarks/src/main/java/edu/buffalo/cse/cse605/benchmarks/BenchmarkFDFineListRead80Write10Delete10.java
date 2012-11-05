@@ -74,6 +74,8 @@ public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
 
             try
             {
+                perOperationBusyTask();
+
 	            if(reader.curr().isDeleted())
 		            reader = list.reader(list.head());
 
@@ -99,7 +101,10 @@ public class BenchmarkFDFineListRead80Write10Delete10 extends BaseBenchmark
                     reader.next();
                     deletes++;
                 }
-            } catch (Exception e)
+            } catch (InterruptedException ex)
+            {
+                Thread.currentThread().interrupt();
+            }catch (Exception e)
             {
                 //LOG.error("Test encountered error", e);
                 errors++;

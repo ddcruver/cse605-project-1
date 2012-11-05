@@ -81,8 +81,6 @@ public class BenchmarkDriver
         normalizedOut.flush();
     }
 
-    ;
-
     public void runIterations(final Benchmark benchmark, int secondsToRun, int threadPoolSize, int iterations) throws InterruptedException, IOException
     {
         List<BenchmarkResult> results = new ArrayList<BenchmarkResult>();
@@ -92,14 +90,14 @@ public class BenchmarkDriver
             results.add(runIteration(benchmark, secondsToRun, threadPoolSize));
         }
 
-        StringBuilder resultsStringBuiler = new StringBuilder();
+        StringBuilder resultsStringBuilder = new StringBuilder();
         for (BenchmarkResult result : results)
         {
-            resultsStringBuiler.append(result.toCsv());
-            resultsStringBuiler.append("\n");
+            resultsStringBuilder.append(result.toCsv());
+            resultsStringBuilder.append("\n");
         }
 
-        LOG.info("{} Results:\n{}", benchmark.getTestName(), resultsStringBuiler);
+        LOG.info("{} Results:\n{}", benchmark.getTestName(), resultsStringBuilder);
 
         writeResults(benchmark.getTestName(), results);
     }
@@ -112,7 +110,7 @@ public class BenchmarkDriver
         executor.setCorePoolSize(threadPoolSize);
         executor.prestartAllCoreThreads();
 
-        warmUpThreadPool(executor, 2, 2);
+        warmUpThreadPool(executor, 1, 2);
 
         benchmark.initRun();
 
@@ -333,7 +331,7 @@ public class BenchmarkDriver
 
     private BufferedWriter getRawResultWriter(String testName, int threads, int iterations, int secondsToRun, long initialListSize) throws IOException
     {
-        String filename = getBaseFileName(testName, threads, iterations, secondsToRun, initialListSize) + "-raw.out";
+        String filename = getBaseFileName(testName, threads, iterations, secondsToRun, initialListSize) + ".out-raw";
 
         // Delete existing report file if it already exists
         File file = new File(filename);
